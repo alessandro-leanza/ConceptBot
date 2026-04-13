@@ -16,20 +16,20 @@ This repository contains the core research code used to prototype the modules an
 - Risk Index: optional safety-focused OPE variant that scores object risk (1-5) and interaction risk with other objects.
 
 **Repository Structure**
-- `Scripts/ConceptBot_Main.py`: main entry point to run the pipeline by toggling modules.
-- `Scripts/Simulation_Environment.ipynb`: PyBullet-based simulation and evaluation notebook.
-- `Scripts/modules/ope.py`: OPE with binary properties.
-- `Scripts/modules/ope_mat.py`: OPE for material classification.
-- `Scripts/modules/ope_score.py`: OPE with 1-3 property scores.
-- `Scripts/modules/ope_score_par.py`: OPE Risk Index (1-5) and optional Wikipedia fallback.
-- `Scripts/modules/urp.py`: URP with ConceptNet relations and few-shot examples.
-- `Scripts/modules/urp_risk.py`: URP variant that uses Risk Index outputs.
-- `Scripts/modules/pl_toplog.py`: Planner using top-logprob scoring + affordances.
-- `Scripts/modules/pl_toplog_prop.py`: Planner with object properties injected.
-- `Scripts/modules/pl_posneg.py`: Planner with positive/negative prompting and affordance terms.
-- `Scripts/modules/pl_iter.py`: Planner using iterative LLM scoring.
-- `Scripts/modules/kg_yolo.py`: YOLO + RealSense + ROS object detection (real-world).
-- `Scripts/modules/pick_and_place.py`: FrankaPy execution helpers.
+- `scripts/ConceptBot_Main.py`: main entry point to run the pipeline by toggling modules.
+- `scripts/Simulation_Environment.ipynb`: PyBullet-based simulation and evaluation notebook.
+- `scripts/modules/ope.py`: OPE with binary properties.
+- `scripts/modules/ope_mat.py`: OPE for material classification.
+- `scripts/modules/ope_score.py`: OPE with 1-3 property scores.
+- `scripts/modules/ope_score_par.py`: OPE Risk Index (1-5) and optional Wikipedia fallback.
+- `scripts/modules/urp.py`: URP with ConceptNet relations and few-shot examples.
+- `scripts/modules/urp_risk.py`: URP variant that uses Risk Index outputs.
+- `scripts/modules/pl_toplog.py`: Planner using top-logprob scoring + affordances.
+- `scripts/modules/pl_toplog_prop.py`: Planner with object properties injected.
+- `scripts/modules/pl_posneg.py`: Planner with positive/negative prompting and affordance terms.
+- `scripts/modules/pl_iter.py`: Planner using iterative LLM scoring.
+- `scripts/modules/kg_yolo.py`: YOLO + RealSense + ROS object detection (real-world).
+- `scripts/modules/pick_and_place.py`: FrankaPy execution helpers.
 
 **Setup**
 This repo does not include a pinned `requirements.txt`. Install the dependencies you need for your chosen modules. Typical packages include:
@@ -39,8 +39,8 @@ pip install openai requests numpy tiktoken matplotlib scikit-learn wikipedia wik
 ```
 
 Optional system dependencies may be required for:
-- PyBullet simulation in `Scripts/Simulation_Environment.ipynb`
-- YOLO, ROS, RealSense for `Scripts/modules/kg_yolo.py`
+- PyBullet simulation in `scripts/Simulation_Environment.ipynb`
+- YOLO, ROS, RealSense for `scripts/modules/kg_yolo.py`
 - FrankaPy for real-robot execution
 
 **Configuration**
@@ -49,13 +49,13 @@ Optional system dependencies may be required for:
 - The optional Wikipedia fallback in `ope_score_par.py` is disabled by default (`use_wiki = False`).
 
 **Run the Main Pipeline**
-Edit flags in `Scripts/ConceptBot_Main.py` to enable the desired modules, then run:
+Edit flags in `scripts/ConceptBot_Main.py` to enable the desired modules, then run:
 
 ```bash
-python Scripts/ConceptBot_Main.py
+python scripts/ConceptBot_Main.py
 ```
 
-Minimal example configuration inside `Scripts/ConceptBot_Main.py`:
+Minimal example configuration inside `scripts/ConceptBot_Main.py`:
 - Enable OPE: `use_OPE = True` (or `use_OPE_score_par = True` for Risk Index)
 - Enable URP: `use_URP = True` (or `use_URP_risk = True` when using Risk Index)
 - Select a planner: `use_toplog = True` or `use_posneg = True`
@@ -63,18 +63,18 @@ Minimal example configuration inside `Scripts/ConceptBot_Main.py`:
 The script uses a hard-coded `user_query` and a small set of `found_objects`. Modify these to test different scenarios.
 
 **Run the Simulation Notebook**
-Open `Scripts/Simulation_Environment.ipynb` in Jupyter and follow the cells. It includes:
+Open `scripts/Simulation_Environment.ipynb` in Jupyter and follow the cells. It includes:
 - PyBullet environment setup with UR5e + Robotiq gripper
 - ViLD object detection and CLIPort pick-and-place heatmaps
 - LLM-based planning calls
 
 **Paper-to-Code Mapping**
-- OPE module: `Scripts/modules/ope.py`, `Scripts/modules/ope_score.py`, `Scripts/modules/ope_mat.py`
-- Risk Index: `Scripts/modules/ope_score_par.py` and `Scripts/modules/urp_risk.py`
-- URP module: `Scripts/modules/urp.py`
-- Planner (LLM scoring + affordance): `Scripts/modules/pl_toplog.py`, `Scripts/modules/pl_toplog_prop.py`, `Scripts/modules/pl_posneg.py`, `Scripts/modules/pl_iter.py`
-- Object detection: `Scripts/modules/kg_yolo.py` (real-world), notebook uses ViLD for simulation
-- Execution on robot: `Scripts/modules/pick_and_place.py`
+- OPE module: `scripts/modules/ope.py`, `scripts/modules/ope_score.py`, `scripts/modules/ope_mat.py`
+- Risk Index: `scripts/modules/ope_score_par.py` and `scripts/modules/urp_risk.py`
+- URP module: `scripts/modules/urp.py`
+- Planner (LLM scoring + affordance): `scripts/modules/pl_toplog.py`, `scripts/modules/pl_toplog_prop.py`, `scripts/modules/pl_posneg.py`, `scripts/modules/pl_iter.py`
+- Object detection: `scripts/modules/kg_yolo.py` (real-world), notebook uses ViLD for simulation
+- Execution on robot: `scripts/modules/pick_and_place.py`
 
 **Known Gaps vs. Paper**
 - The prompt lists, task suites, and evaluation harness from the paper are not present in this repo.
