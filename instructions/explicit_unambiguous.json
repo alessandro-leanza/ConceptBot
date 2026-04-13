@@ -1,0 +1,66 @@
+{
+  "category": "explicit_unambiguous",
+  "shared_objects": [
+    "energy bar",
+    "water bottle",
+    "chips",
+    "trash can",
+    "coke",
+    "apple",
+    "lime soda",
+    "sponge",
+    "table",
+    "counter",
+    "sweet bar",
+    "user",
+    "fridge",
+    "7up",
+    "chili bottle",
+    "egg",
+    "butter",
+    "lemon",
+    "ceramic bowl",
+    "plate",
+    "corn",
+    "carrot",
+    "cup",
+    "rivella"
+  ],
+  "items": [
+    {
+      "id": "eu_01",
+      "instruction": "Put an energy bar and a water bottle on the table.",
+      "objects": null
+    },
+    {
+      "id": "eu_02",
+      "instruction": "Bring me a lime soda and a bag of chips.",
+      "objects": null
+    },
+    {
+      "id": "eu_03",
+      "instruction": "Can you throw away the apple and bring me a coke.",
+      "objects": null
+    },
+    {
+      "id": "eu_04",
+      "instruction": "Bring me a 7up can and a tea.",
+      "objects": null
+    },
+    {
+      "id": "eu_05",
+      "instruction": "Move multigrain chips to the table and an apple to the far counter.",
+      "objects": null
+    },
+    {
+      "id": "eu_06",
+      "instruction": "Move the lime soda, the sponge, and the water bottle to the table.",
+      "objects": null
+    },
+    {
+      "id": "eu_07",
+      "instruction": "Bring me an apple, a Coke, and a water bottle.",
+      "objects": null
+    }
+  ]
+}

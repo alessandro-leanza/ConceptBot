@@ -1,0 +1,81 @@
+{
+  "category": "explicit_ambiguous",
+  "shared_objects": [
+    "energy bar",
+    "water bottle",
+    "chips",
+    "trash can",
+    "coke",
+    "apple",
+    "lime soda",
+    "sponge",
+    "table",
+    "counter",
+    "sweet bar",
+    "user",
+    "fridge",
+    "7up",
+    "chili bottle",
+    "egg",
+    "butter",
+    "lemon",
+    "ceramic bowl",
+    "plate",
+    "corn",
+    "carrot",
+    "cup",
+    "rivella"
+  ],
+  "items": [
+    {
+      "id": "ea_01",
+      "instruction": "I want to wipe off some spill.",
+      "objects": null
+    },
+    {
+      "id": "ea_02",
+      "instruction": "Bring me a fruit.",
+      "objects": null
+    },
+    {
+      "id": "ea_03",
+      "instruction": "Bring me a snack.",
+      "objects": null
+    },
+    {
+      "id": "ea_04",
+      "instruction": "Bring me a bag of chips.",
+      "objects": null
+    },
+    {
+      "id": "ea_05",
+      "instruction": "Bring me a bag of snacks.",
+      "objects": null
+    },
+    {
+      "id": "ea_06",
+      "instruction": "Bring me a bag of chips and something to wipe a spill.",
+      "objects": null
+    },
+    {
+      "id": "ea_07",
+      "instruction": "Bring me a bag of chips and something to drink.",
+      "objects": null
+    },
+    {
+      "id": "ea_08",
+      "instruction": "Bring me a bag of chips and a soda.",
+      "objects": null
+    },
+    {
+      "id": "ea_09",
+      "instruction": "I want a soda that is not coke, and a fruit.",
+      "objects": null
+    },
+    {
+      "id": "ea_10",
+      "instruction": "I want a fruit and a soda.",
+      "objects": null
+    }
+  ]
+}

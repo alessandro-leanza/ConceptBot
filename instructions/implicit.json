@@ -1,0 +1,81 @@
+{
+  "category": "implicit",
+  "shared_objects": [
+    "energy bar",
+    "water bottle",
+    "chips",
+    "trash can",
+    "coke",
+    "apple",
+    "lime soda",
+    "sponge",
+    "table",
+    "counter",
+    "sweet bar",
+    "user",
+    "fridge",
+    "7up",
+    "chili bottle",
+    "egg",
+    "butter",
+    "lemon",
+    "ceramic bowl",
+    "plate",
+    "corn",
+    "carrot",
+    "cup",
+    "rivella"
+  ],
+  "items": [
+    {
+      "id": "im_01",
+      "instruction": "I am thirsty and very, very hungry.",
+      "objects": null
+    },
+    {
+      "id": "im_02",
+      "instruction": "Throw out the unhealthy things and instead bring to the user those that are not.",
+      "objects": null
+    },
+    {
+      "id": "im_03",
+      "instruction": "I am sleepy, but still have to work. Can you bring me something to drink?",
+      "objects": null
+    },
+    {
+      "id": "im_04",
+      "instruction": "Oh no, I dropped my coke on the table! What am I going to do?",
+      "objects": null
+    },
+    {
+      "id": "im_05",
+      "instruction": "I got the plate dirty!",
+      "objects": null
+    },
+    {
+      "id": "im_06",
+      "instruction": "I want to welcome my friends. Can you do something?",
+      "objects": null
+    },
+    {
+      "id": "im_07",
+      "instruction": "Bring me something to snack on and store items that need to be refreshed in the refrigerator.",
+      "objects": null
+    },
+    {
+      "id": "im_08",
+      "instruction": "Place the aliments in the bowl.",
+      "objects": null
+    },
+    {
+      "id": "im_09",
+      "instruction": "Give me everything there is to drink.",
+      "objects": null
+    },
+    {
+      "id": "im_10",
+      "instruction": "I would like a hollandaise sauce.",
+      "objects": null
+    }
+  ]
+}
