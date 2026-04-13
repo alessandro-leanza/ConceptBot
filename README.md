@@ -1,6 +1,87 @@
 # ConceptBot
-## Abstract
-Robotic planning breaks down when commonsense reasoning is required to resolve linguistic ambiguity and to interpret objects correctly. To address this, we present ConceptBot, a modular planning framework that integrates large language models with knowledge graphs to produce feasible, risk-aware plans while jointly disambiguating instructions and grounding object semantics.
-ConceptBot comprises three components: (i) an Object Properties Extraction (OPE) module that augments scene understanding with semantic concepts from ConceptNet; (ii) a User Request Processing (URP) module that resolves ambiguities and structures free-form instructions; and (iii) a Planner that synthesizes context-aware, feasible pick-and-place policies. Evaluations in simulation and on real-world setups show consistent gains over prior LLM-based planners—for example, +56 percentage points on implicit tasks (87\% vs. 31\% for SayCan) and +61 points on risk-aware tasks (76\% vs. 15\%)—and an overall score of 80\% on SafeAgentBench. These improvements translate to more reliable performance in unstructured environments without domain-specific training.
 
-Website: https://sites.google.com/view/conceptbot
+ConceptBot is a modular LLM-based robot planning framework that grounds commonsense knowledge in a knowledge graph to resolve underspecified requests and produce feasible, risk-aware pick-and-place plans. The system is organized into three main modules (OPE, URP, Planner) plus an optional Risk Index for safety-critical tasks.
+
+This repository contains the core research code used to prototype the modules and run example pipelines, plus a simulation notebook for PyBullet experiments.
+
+**What ConceptBot Does**
+- Grounds detected objects with ConceptNet relations to infer properties and risks.
+- Disambiguates user requests into structured, robot-executable commands.
+- Plans pick-and-place action sequences with LLM scoring and affordance checks.
+
+**Architecture (Paper Summary)**
+- OPE (Object Properties Extraction): retrieves ConceptNet relations for scene objects, filters them by embedding similarity, and asks an LLM to label properties (fragile, dangerous, etc.).
+- URP (User Request Processing): extracts keywords from the request, retrieves and filters ConceptNet relations, and rewrites the instruction into a structured, robot-ready query.
+- Planner: selects the next action using LLM scoring and combines it with affordance scoring to ensure feasibility.
+- Risk Index: optional safety-focused OPE variant that scores object risk (1-5) and interaction risk with other objects.
+
+**Repository Structure**
+- `Scripts/ConceptBot_Main.py`: main entry point to run the pipeline by toggling modules.
+- `Scripts/Simulation_Environment.ipynb`: PyBullet-based simulation and evaluation notebook.
+- `Scripts/modules/ope.py`: OPE with binary properties.
+- `Scripts/modules/ope_mat.py`: OPE for material classification.
+- `Scripts/modules/ope_score.py`: OPE with 1-3 property scores.
+- `Scripts/modules/ope_score_par.py`: OPE Risk Index (1-5) and optional Wikipedia fallback.
+- `Scripts/modules/urp.py`: URP with ConceptNet relations and few-shot examples.
+- `Scripts/modules/urp_risk.py`: URP variant that uses Risk Index outputs.
+- `Scripts/modules/pl_toplog.py`: Planner using top-logprob scoring + affordances.
+- `Scripts/modules/pl_toplog_prop.py`: Planner with object properties injected.
+- `Scripts/modules/pl_posneg.py`: Planner with positive/negative prompting and affordance terms.
+- `Scripts/modules/pl_iter.py`: Planner using iterative LLM scoring.
+- `Scripts/modules/kg_yolo.py`: YOLO + RealSense + ROS object detection (real-world).
+- `Scripts/modules/pick_and_place.py`: FrankaPy execution helpers.
+
+**Setup**
+This repo does not include a pinned `requirements.txt`. Install the dependencies you need for your chosen modules. Typical packages include:
+
+```bash
+pip install openai requests numpy tiktoken matplotlib scikit-learn wikipedia wikipedia-api openie
+```
+
+Optional system dependencies may be required for:
+- PyBullet simulation in `Scripts/Simulation_Environment.ipynb`
+- YOLO, ROS, RealSense for `Scripts/modules/kg_yolo.py`
+- FrankaPy for real-robot execution
+
+**Configuration**
+- Set your OpenAI API key in the environment or directly in the modules (several files contain `openai.api_key = ''`).
+- ConceptNet is accessed via HTTP at runtime; no local dump is required.
+- The optional Wikipedia fallback in `ope_score_par.py` is disabled by default (`use_wiki = False`).
+
+**Run the Main Pipeline**
+Edit flags in `Scripts/ConceptBot_Main.py` to enable the desired modules, then run:
+
+```bash
+python Scripts/ConceptBot_Main.py
+```
+
+Minimal example configuration inside `Scripts/ConceptBot_Main.py`:
+- Enable OPE: `use_OPE = True` (or `use_OPE_score_par = True` for Risk Index)
+- Enable URP: `use_URP = True` (or `use_URP_risk = True` when using Risk Index)
+- Select a planner: `use_toplog = True` or `use_posneg = True`
+
+The script uses a hard-coded `user_query` and a small set of `found_objects`. Modify these to test different scenarios.
+
+**Run the Simulation Notebook**
+Open `Scripts/Simulation_Environment.ipynb` in Jupyter and follow the cells. It includes:
+- PyBullet environment setup with UR5e + Robotiq gripper
+- ViLD object detection and CLIPort pick-and-place heatmaps
+- LLM-based planning calls
+
+**Paper-to-Code Mapping**
+- OPE module: `Scripts/modules/ope.py`, `Scripts/modules/ope_score.py`, `Scripts/modules/ope_mat.py`
+- Risk Index: `Scripts/modules/ope_score_par.py` and `Scripts/modules/urp_risk.py`
+- URP module: `Scripts/modules/urp.py`
+- Planner (LLM scoring + affordance): `Scripts/modules/pl_toplog.py`, `Scripts/modules/pl_toplog_prop.py`, `Scripts/modules/pl_posneg.py`, `Scripts/modules/pl_iter.py`
+- Object detection: `Scripts/modules/kg_yolo.py` (real-world), notebook uses ViLD for simulation
+- Execution on robot: `Scripts/modules/pick_and_place.py`
+
+**Known Gaps vs. Paper**
+- The prompt lists, task suites, and evaluation harness from the paper are not present in this repo.
+- The reported evaluation metrics and benchmarking pipeline are not implemented as standalone scripts here.
+- Some affordance components described in the paper (RPN scores, bounding-box size checks) are stubbed or simplified in code, and are not wired to a full perception stack.
+- The Wikipedia fallback in OPE exists but is disabled by default and requires extra dependencies (OpenIE).
+- No pinned dependency file is provided, so reproducibility requires manual setup.
+
+**License**
+See `LICENSE`.
