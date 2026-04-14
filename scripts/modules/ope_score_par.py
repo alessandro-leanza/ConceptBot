@@ -1,8 +1,10 @@
 # moduli/ope.py
 
 import openai
+import os
 from openai import OpenAI
 import requests
+from scripts.modules.conceptnet_backend import get_conceptnet_relations as cn_get_relations
 import numpy as np
 import re
 import wikipediaapi
@@ -25,8 +27,8 @@ use_obj_prop = True
 use_kg = False
 use_wiki = False
 
-# Set your OpenAI API key
-openai.api_key = ''
+# Set your OpenAI API key from environment (if provided)
+openai.api_key = os.getenv("OPENAI_API_KEY", "")
 
 def compute_embedding(text, model="text-embedding-ada-002"):
     response = openai.embeddings.create(
@@ -37,26 +39,13 @@ def compute_embedding(text, model="text-embedding-ada-002"):
     return np.array(embedding)
 
 def get_conceptnet_relations(object_name):
-    object_name = object_name.lower().replace(' ', '_')
-    url = f'http://api.conceptnet.io/c/en/{object_name}?limit=100'
-    response = requests.get(url).json()
-
-    if 'error' in response:
-        print(f"Error: {response['error']['details']}")
-        return []
-
-    relations = []
     relevant_relations = {'MadeOf', 'UsedFor', 'IsA', 'HasProperty', 'CapableOf', 'PartOf', 'RelatedTo'}
-
-    for edge in response.get('edges', []):
-        rel_label = edge['rel']['label']
-        if rel_label in relevant_relations:
-            start = edge['start']['label']
-            end = edge['end']['label']
-            relations.append((start, rel_label, end))
-
-    relations = list(set(relations))
-    return relations
+    relations = cn_get_relations(
+        object_name,
+        lang="en",
+        relations=sorted(list(relevant_relations)),
+    )
+    return list(set(relations))
 
 def compute_relation_embeddings(relations):
     relation_embeddings = []
@@ -69,7 +58,8 @@ def compute_relation_embeddings(relations):
 def compute_cosine_similarity(a, b):
     return np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))
 
-def filter_relations_by_similarity(relation_embeddings, property_embeddings, threshold=0.75):
+def filter_relations_by_similarity(relation_embeddings, property_embeddings, threshold=0.75, return_counts=False):
+    total = len(relation_embeddings)
     filtered_relations = []
     for relation, rel_emb in relation_embeddings:
         max_similarity = 0
@@ -80,6 +70,8 @@ def filter_relations_by_similarity(relation_embeddings, property_embeddings, thr
         if max_similarity >= threshold:
             filtered_relations.append((relation, max_similarity))
     filtered_relations.sort(key=lambda x: x[1], reverse=True)
+    if return_counts:
+        return filtered_relations, total
     return filtered_relations
 
 def parse_gpt_response(response):
@@ -145,7 +137,8 @@ def extract_wikipedia_triples(text: str, property_embeddings: dict) -> List[tupl
 
 
 def filter_triples_by_similarity(relation_triples, property_embeddings, deduplicated_embeddings=None, 
-                                 threshold=0.6, use_embedding_filter=False, use_keyword_filter=True, keywords=None):
+                                 threshold=0.75, use_embedding_filter=False, use_keyword_filter=True, keywords=None,
+                                 return_counts=False):
     """
     Filters triples based on cosine similarity or a set of keywords.
     Args:
@@ -161,6 +154,7 @@ def filter_triples_by_similarity(relation_triples, property_embeddings, deduplic
 
     """
     filtered_triples = []
+    total = len(relation_triples)
     keywords = keywords or [
         "danger", "dangers", "dangerous", "hazard", "hazards", "hazardous", 
         "risk", "risks", "risky", "injury", "injuries", "harm", "harms", 
@@ -229,8 +223,12 @@ def filter_triples_by_similarity(relation_triples, property_embeddings, deduplic
         print(f"[Embedding Filter] Found {len(refined_triples)} relations after embedding filtering.")
 
         refined_triples.sort(key=lambda x: x[1], reverse=True)
+        if return_counts:
+            return refined_triples, total
         return refined_triples
 
+    if return_counts:
+        return filtered_triples, total
     return filtered_triples
 
 
@@ -368,7 +366,7 @@ def cluster_and_deduplicate_relations(relations, model="text-embedding-ada-002",
     return deduplicated_relations, deduplicated_embeddings
 
 
-def process_object(object_name, property_embeddings, use_embedding_filter=False):
+def process_object(object_name, property_embeddings, theta=0.75, stats=None, use_embedding_filter=False):
     """
     Process a single object: extract relationships from ConceptNet and Wikipedia, apply filtering.
     """
@@ -379,9 +377,13 @@ def process_object(object_name, property_embeddings, use_embedding_filter=False)
     filtered_relations_conceptnet = []
     if relations_conceptnet:
         relation_embeddings = compute_relation_embeddings(relations_conceptnet)
-        filtered_relations_conceptnet = filter_relations_by_similarity(
-            relation_embeddings, property_embeddings
+        filtered_relations_conceptnet, total = filter_relations_by_similarity(
+            relation_embeddings, property_embeddings, threshold=theta, return_counts=True
         )
+        if stats is not None:
+            stats["ope_relations_total"] = stats.get("ope_relations_total", 0) + total
+            stats["ope_relations_kept"] = stats.get("ope_relations_kept", 0) + len(filtered_relations_conceptnet)
+            stats["ope_objects"] = stats.get("ope_objects", 0) + 1
         if len(filtered_relations_conceptnet) == 0:
             print(f"No relations from ConceptNet above threshold for '{object_name}'")
 
@@ -396,10 +398,14 @@ def process_object(object_name, property_embeddings, use_embedding_filter=False)
         if wiki_content:
             extracted_triples = extract_openie_triples(wiki_content)
             
-            keyword_filtered_triples = filter_triples_by_similarity(
+            keyword_filtered_triples, total = filter_triples_by_similarity(
                 extracted_triples, property_embeddings,
-                use_keyword_filter=True, use_embedding_filter=False
+                use_keyword_filter=True, use_embedding_filter=False, threshold=theta, return_counts=True
             )
+            if stats is not None:
+                stats["ope_relations_total"] = stats.get("ope_relations_total", 0) + total
+                stats["ope_relations_kept"] = stats.get("ope_relations_kept", 0) + len(keyword_filtered_triples)
+                stats["ope_objects"] = stats.get("ope_objects", 0) + 1
 
             deduplicated_triples, deduplicated_embeddings = cluster_and_deduplicate_relations(
                 [f"{triple[0]} {triple[1]} {triple[2]}" for triple, _ in keyword_filtered_triples]
@@ -409,10 +415,14 @@ def process_object(object_name, property_embeddings, use_embedding_filter=False)
                 system_message += f"{idx}. {relation}\n"
 
             if use_embedding_filter:
-                relations_wikipedia = filter_triples_by_similarity(
+                relations_wikipedia, total = filter_triples_by_similarity(
                     deduplicated_triples, property_embeddings,
-                    use_keyword_filter=False, use_embedding_filter=True
+                    use_keyword_filter=False, use_embedding_filter=True, threshold=theta, return_counts=True
                 )
+                if stats is not None:
+                    stats["ope_relations_total"] = stats.get("ope_relations_total", 0) + total
+                    stats["ope_relations_kept"] = stats.get("ope_relations_kept", 0) + len(relations_wikipedia)
+                    stats["ope_objects"] = stats.get("ope_objects", 0) + 1
 
     filtered_relations = filtered_relations_conceptnet + relations_wikipedia
 
@@ -426,7 +436,7 @@ def process_object(object_name, property_embeddings, use_embedding_filter=False)
 
 
 
-def OPE_score_par(found_objects, rel_objects, user_request):
+def OPE_score_par(found_objects, rel_objects, user_request, theta=0.75, stats=None, llm_temperature=0):
     properties = ["dangerous"]
     property_embeddings = {}
 
@@ -439,7 +449,7 @@ def OPE_score_par(found_objects, rel_objects, user_request):
     print("Processing objects in parallel...")
     with ThreadPoolExecutor() as executor:
         results = list(executor.map(
-            lambda obj: process_object(obj, property_embeddings), 
+            lambda obj: process_object(obj, property_embeddings, theta=theta, stats=stats), 
             rel_objects
         ))
 
@@ -496,7 +506,8 @@ def OPE_score_par(found_objects, rel_objects, user_request):
         messages=[
             {"role": "system", "content": system_message},
             {"role": "user", "content": user_message}
-        ]
+        ],
+        temperature=llm_temperature
     )
 
     response_message = request.choices[0].message

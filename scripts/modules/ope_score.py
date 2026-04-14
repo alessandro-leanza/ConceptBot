@@ -1,8 +1,10 @@
 # moduli/ope.py
 
 import openai
+import os
 from openai import OpenAI
 import requests
+from scripts.modules.conceptnet_backend import get_conceptnet_relations as cn_get_relations
 import numpy as np
 import re
 
@@ -10,8 +12,8 @@ use_proc_names = False
 use_obj_prop = True
 use_kg = False
 
-# Set your OpenAI API key
-openai.api_key = ''
+# Set your OpenAI API key from environment (if provided)
+openai.api_key = os.getenv("OPENAI_API_KEY", "")
 
 def compute_embedding(text, model="text-embedding-ada-002"):
     response = openai.embeddings.create(
@@ -22,27 +24,13 @@ def compute_embedding(text, model="text-embedding-ada-002"):
     return np.array(embedding)
 
 def get_conceptnet_relations(object_name):
-    object_name = object_name.lower().replace(' ', '_')
-    url = f'http://api.conceptnet.io/c/en/{object_name}?limit=100'
-    response = requests.get(url).json()
-
-    if 'error' in response:
-        print(f"Error: {response['error']['details']}")
-        return []
-
-    relations = []
     relevant_relations = {'MadeOf', 'UsedFor', 'IsA', 'HasProperty', 'CapableOf', 'PartOf', 'RelatedTo'}
-
-    for edge in response.get('edges', []):
-        rel_label = edge['rel']['label']
-        if rel_label in relevant_relations:
-            start = edge['start']['label']
-            end = edge['end']['label']
-            relations.append((start, rel_label, end))
-
-    # Rimuove duplicati
-    relations = list(set(relations))
-    return relations
+    relations = cn_get_relations(
+        object_name,
+        lang="en",
+        relations=sorted(list(relevant_relations)),
+    )
+    return list(set(relations))
 
 def compute_relation_embeddings(relations):
     relation_embeddings = []
@@ -55,7 +43,8 @@ def compute_relation_embeddings(relations):
 def cosine_similarity(a, b):
     return np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))
 
-def filter_relations_by_similarity(relation_embeddings, property_embeddings, threshold=0.75):
+def filter_relations_by_similarity(relation_embeddings, property_embeddings, threshold=0.75, return_counts=False):
+    total = len(relation_embeddings)
     filtered_relations = []
     for relation, rel_emb in relation_embeddings:
         max_similarity = 0
@@ -66,6 +55,8 @@ def filter_relations_by_similarity(relation_embeddings, property_embeddings, thr
         if max_similarity >= threshold:
             filtered_relations.append((relation, max_similarity))
     filtered_relations.sort(key=lambda x: x[1], reverse=True)
+    if return_counts:
+        return filtered_relations, total
     return filtered_relations
 
 def parse_gpt_response(response):
@@ -96,7 +87,7 @@ def parse_gpt_response(response):
 
     return objects_info
 
-def OPE_score(found_objects, rel_objects):
+def OPE_score(found_objects, rel_objects, theta=0.75, stats=None, llm_temperature=0):
     properties = ["fragile", "toxic", "dangerous", "stable", 'deformable']
     property_embeddings = {}
     system_message = (
@@ -129,7 +120,14 @@ def OPE_score(found_objects, rel_objects):
             
             relation_embeddings = compute_relation_embeddings(relations)
             
-            filtered_relations = filter_relations_by_similarity(relation_embeddings, property_embeddings)
+            filtered_relations, total = filter_relations_by_similarity(
+                relation_embeddings, property_embeddings, threshold=theta, return_counts=True
+            )
+
+            if stats is not None:
+                stats["ope_relations_total"] = stats.get("ope_relations_total", 0) + total
+                stats["ope_relations_kept"] = stats.get("ope_relations_kept", 0) + len(filtered_relations)
+                stats["ope_objects"] = stats.get("ope_objects", 0) + 1
             
             if not filtered_relations:
                 print(f"No relevant relations found for '{obj}' after filtering.")
@@ -152,7 +150,8 @@ def OPE_score(found_objects, rel_objects):
         messages=[
             {"role": "system", "content": system_message},
             {"role": "user", "content": user_message}
-        ]
+        ],
+        temperature=llm_temperature
     )
 
     response_message = request.choices[0].message

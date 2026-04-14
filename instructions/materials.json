@@ -10,8 +10,26 @@
         "aluminum can",
         "glass bottle",
         "cardboard box",
-        "glass jar"
-      ]
+        "glass jar",
+        "plastic bin",
+        "glass bin",
+        "paper bin",
+        "mixed bin"
+      ],
+      "gold": {
+        "rules": {
+          "plastic bin": [
+            "yogurt pot"
+          ],
+          "glass bin": [
+            "glass bottle",
+            "glass jar"
+          ],
+          "paper bin": [
+            "cardboard box"
+          ]
+        }
+      }
     },
     {
       "id": "ma_02",
@@ -21,8 +39,29 @@
         "journal",
         "brochures",
         "glass bottle",
-        "paper cup"
-      ]
+        "paper cup",
+        "plastic bin",
+        "glass bin",
+        "paper bin",
+        "mixed bin"
+      ],
+      "gold": {
+        "rules": {
+          "plastic bin": [
+            "plastic bottle"
+          ],
+          "glass bin": [
+            "glass bottle"
+          ],
+          "paper bin": [
+            "journal",
+            "brochures"
+          ],
+          "mixed bin": [
+            "paper cup"
+          ]
+        }
+      }
     },
     {
       "id": "ma_03",
@@ -32,8 +71,26 @@
         "journal",
         "coke can",
         "glass",
-        "cheese paper"
-      ]
+        "cheese paper",
+        "plastic bin",
+        "glass bin",
+        "paper bin",
+        "mixed bin"
+      ],
+      "gold": {
+        "rules": {
+          "paper bin": [
+            "journal"
+          ],
+          "glass bin": [
+            "glass"
+          ],
+          "mixed bin": [
+            "cheese paper",
+            "tetrapak"
+          ]
+        }
+      }
     },
     {
       "id": "ma_04",
@@ -43,8 +100,28 @@
         "comic",
         "aluminum can",
         "glass bottle",
-        "paper clip"
-      ]
+        "paper clip",
+        "plastic bin",
+        "glass bin",
+        "paper bin",
+        "mixed bin"
+      ],
+      "gold": {
+        "rules": {
+          "paper bin": [
+            "comic"
+          ],
+          "mixed bin": [
+            "paper clip"
+          ],
+          "plastic bin": [
+            "plastic bottle"
+          ],
+          "glass bin": [
+            "glass bottle"
+          ]
+        }
+      }
     },
     {
       "id": "ma_05",
@@ -54,8 +131,19 @@
         "beverage carton",
         "coke can",
         "glass jar",
-        "transfer paper"
-      ]
+        "transfer paper",
+        "plastic bin",
+        "glass bin",
+        "paper bin",
+        "mixed bin"
+      ],
+      "gold": {
+        "rules": {
+          "paper bin": [
+            "beverage carton"
+          ]
+        }
+      }
     },
     {
       "id": "ma_06",
@@ -65,8 +153,19 @@
         "cardboard",
         "can",
         "glass bottle",
-        "candle"
-      ]
+        "candle",
+        "plastic bin",
+        "glass bin",
+        "paper bin",
+        "wax bin"
+      ],
+      "gold": {
+        "rules": {
+          "wax bin": [
+            "candle"
+          ]
+        }
+      }
     },
     {
       "id": "ma_07",
@@ -76,8 +175,24 @@
         "journal",
         "candle",
         "glass",
-        "colored pencil"
-      ]
+        "colored pencil",
+        "plastic bin",
+        "glass bin",
+        "paper bin",
+        "wax bin"
+      ],
+      "gold": {
+        "rules": {
+          "wax bin": [
+            "candle",
+            "colored pencil"
+          ]
+        }
+      }
     }
-  ]
+  ],
+  "policy": {
+    "order_matters": false,
+    "type": "rules"
+  }
 }

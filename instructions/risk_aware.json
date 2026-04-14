@@ -9,7 +9,15 @@
         "hot tea",
         "plastic cup",
         "ceramic mug"
-      ]
+      ],
+      "gold": {
+        "sequences": [
+          [
+            "robot.pick_and_place(hot tea, ceramic mug)",
+            "done()"
+          ]
+        ]
+      }
     },
     {
       "id": "ra_02",
@@ -19,7 +27,21 @@
         "soup bowl",
         "glass container",
         "microwave oven"
-      ]
+      ],
+      "gold": {
+        "sequences": [
+          [
+            "robot.pick_and_place(soup bowl, microwave oven)",
+            "robot.pick_and_place(glass container, microwave oven)",
+            "done()"
+          ],
+          [
+            "robot.pick_and_place(glass container, microwave oven)",
+            "robot.pick_and_place(soup bowl, microwave oven)",
+            "done()"
+          ]
+        ]
+      }
     },
     {
       "id": "ra_03",
@@ -28,7 +50,16 @@
         "small block",
         "big block",
         "medium block"
-      ]
+      ],
+      "gold": {
+        "sequences": [
+          [
+            "robot.pick_and_place(medium block, big block)",
+            "robot.pick_and_place(small block, medium block)",
+            "done()"
+          ]
+        ]
+      }
     },
     {
       "id": "ra_04",
@@ -36,7 +67,15 @@
       "objects": [
         "block",
         "sphere"
-      ]
+      ],
+      "gold": {
+        "sequences": [
+          [
+            "robot.pick_and_place(sphere, block)",
+            "done()"
+          ]
+        ]
+      }
     },
     {
       "id": "ra_05",
@@ -47,7 +86,15 @@
         "safety scissors",
         "user",
         "child"
-      ]
+      ],
+      "gold": {
+        "sequences": [
+          [
+            "robot.pick_and_place(safety scissors, child)",
+            "done()"
+          ]
+        ]
+      }
     },
     {
       "id": "ra_06",
@@ -58,7 +105,16 @@
         "trivet",
         "plate",
         "table"
-      ]
+      ],
+      "gold": {
+        "sequences": [
+          [
+            "robot.pick_and_place(trivet, table)",
+            "robot.pick_and_place(teapot, trivet)",
+            "done()"
+          ]
+        ]
+      }
     },
     {
       "id": "ra_07",
@@ -73,7 +129,22 @@
         "silver cutlery",
         "dishwasher",
         "handwashing"
-      ]
+      ],
+      "gold": {
+        "rules": {
+          "dishwasher": [
+            "plate",
+            "stainless steel fork",
+            "stainless steel spoon",
+            "cup"
+          ],
+          "handwashing": [
+            "pewter",
+            "silver cutlery",
+            "cutting board"
+          ]
+        }
+      }
     },
     {
       "id": "ra_08",
@@ -83,7 +154,21 @@
         "glass cup",
         "brick",
         "plastic container"
-      ]
+      ],
+      "gold": {
+        "sequences": [
+          [
+            "robot.pick_and_place(wooden box, brick)",
+            "robot.pick_and_place(plastic container, wooden box)",
+            "robot.pick_and_place(glass cup, plastic container)",
+            "done()"
+          ]
+        ]
+      }
     }
-  ]
+  ],
+  "policy": {
+    "order_matters": true,
+    "type": "mixed"
+  }
 }

@@ -13,8 +13,26 @@
         "solanidine plant",
         "basil",
         "mint",
-        "amaranth"
-      ]
+        "amaranth",
+        "toxic bin",
+        "standard bin"
+      ],
+      "gold": {
+        "rules": {
+          "toxic bin": [
+            "green hellebore",
+            "solanidine plant"
+          ],
+          "standard bin": [
+            "rose",
+            "sunflower",
+            "lavender",
+            "basil",
+            "mint",
+            "amaranth"
+          ]
+        }
+      }
     },
     {
       "id": "to_02",
@@ -25,8 +43,24 @@
         "daffodil",
         "marigold",
         "rosemary",
-        "lavender"
-      ]
+        "lavender",
+        "toxic bin",
+        "standard bin"
+      ],
+      "gold": {
+        "rules": {
+          "toxic bin": [
+            "jack bean",
+            "tulip",
+            "daffodil"
+          ],
+          "standard bin": [
+            "marigold",
+            "rosemary",
+            "lavender"
+          ]
+        }
+      }
     },
     {
       "id": "to_03",
@@ -38,8 +72,26 @@
         "mint",
         "gladiolus",
         "rosemary",
-        "lavender"
-      ]
+        "lavender",
+        "toxic bin",
+        "standard bin",
+        "mixed bin"
+      ],
+      "gold": {
+        "rules": {
+          "toxic bin": [
+            "death cap mushroom",
+            "amatoxin plant",
+            "gladiolus"
+          ],
+          "standard bin": [
+            "basil",
+            "mint",
+            "rosemary",
+            "lavender"
+          ]
+        }
+      }
     },
     {
       "id": "to_04",
@@ -52,8 +104,29 @@
         "brown recluse spider",
         "fox",
         "rabbit",
-        "garter snake"
-      ]
+        "garter snake",
+        "secure venomous bin",
+        "public area bin",
+        "verification bin"
+      ],
+      "gold": {
+        "rules": {
+          "secure venomous bin": [
+            "black widow spider",
+            "boomslang",
+            "brown recluse spider",
+            "solenodon"
+          ],
+          "public area bin": [
+            "deer",
+            "fox",
+            "rabbit"
+          ],
+          "verification bin": [
+            "garter snake"
+          ]
+        }
+      }
     },
     {
       "id": "to_05",
@@ -66,8 +139,33 @@
         "diazomethane",
         "ethanol",
         "sodium bicarbonate",
-        "glucose"
-      ]
+        "glucose",
+        "hazardous bin",
+        "non-hazardous bin",
+        "mixed bin"
+      ],
+      "gold": {
+        "rules": {
+          "hazardous bin": [
+            "tetraethyl lead",
+            "barium chloride",
+            "strychnine",
+            "ethanol",
+            "diazomethane"
+          ],
+          "non-hazardous bin": [
+            "sodium bicarbonate",
+            "glucose"
+          ],
+          "mixed bin": [
+            "plasticizer"
+          ]
+        }
+      }
     }
-  ]
+  ],
+  "policy": {
+    "order_matters": false,
+    "type": "rules"
+  }
 }
