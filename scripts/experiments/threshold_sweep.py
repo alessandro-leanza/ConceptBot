@@ -15,7 +15,9 @@ except Exception:
 from instructions.load_instructions import load_category, resolve_items
 from scripts.modules.ope import OPE
 from scripts.modules.ope_mat import OPE_mat
+from scripts.modules.ope_score_par import OPE_score_par
 from scripts.modules.urp import URP
+from scripts.modules.urp_risk import URP_risk
 
 
 DEFAULT_THETAS = [0.65, 0.70, 0.75, 0.80, 0.85]
@@ -126,18 +128,26 @@ def run_item(item: Dict[str, Any], theta: float, category: str, judge_model: str
     found_objects = item["objects"]
     stats: Dict[str, Any] = {}
 
-    # Choose OPE variant (materials tasks use OPE_mat, others use OPE)
+    # Choose OPE/URP variant by category
     if category == "materials":
         objects_info = OPE_mat(found_objects, found_objects, theta=theta, stats=stats, llm_temperature=0)
+        urp_fn = URP
+        use_ope_in_urp = True
+    elif category == "risk_aware":
+        objects_info = OPE_score_par(found_objects, found_objects, item["instruction"], theta=theta, stats=stats, llm_temperature=0)
+        urp_fn = URP_risk
+        use_ope_in_urp = True
     else:
         objects_info = OPE(found_objects, found_objects, theta=theta, stats=stats, llm_temperature=0)
+        urp_fn = URP
+        use_ope_in_urp = True
 
     # URP to get an action-like structured response
-    action = URP(
+    action = urp_fn(
         item["instruction"],
         found_objects,
         objects_info,
-        use_OPE=True,
+        use_OPE=use_ope_in_urp,
         rel_objects=found_objects,
         theta=theta,
         stats=stats,
@@ -154,6 +164,7 @@ def run_item(item: Dict[str, Any], theta: float, category: str, judge_model: str
     return {
         "success": score,
         "stats": stats,
+        "action": action,
     }
 
 
@@ -193,6 +204,8 @@ def main():
     parser.add_argument("--out", default="results/threshold_sweep")
     parser.add_argument("--judge-model", default="gpt-4o-mini")
     parser.add_argument("--cache-only", action="store_true")
+    parser.add_argument("--num-trials", type=int, default=5)
+    parser.add_argument("--save-policies", action="store_true")
     args = parser.parse_args()
 
     # Reproducibility
@@ -204,6 +217,7 @@ def main():
         os.environ["CONCEPTNET_CACHE_ONLY"] = "1"
 
     results = []
+    policy_log_lines = []
 
     for theta in args.theta_list:
         for category in args.categories:
@@ -214,11 +228,20 @@ def main():
             successes = 0
             stats_list = []
             for item in items:
-                out = run_item(item, theta=theta, category=category, judge_model=args.judge_model, policy_meta=policy_meta)
-                successes += out["success"]
-                stats_list.append(out["stats"])
+                for trial in range(args.num_trials):
+                    out = run_item(item, theta=theta, category=category, judge_model=args.judge_model, policy_meta=policy_meta)
+                    successes += out["success"]
+                    stats_list.append(out["stats"])
+                    if args.save_policies:
+                        policy_log_lines.append(
+                            f"theta={theta} category={category} id={item['id']} trial={trial} success={out['success']}\n"
+                        )
+                        policy_log_lines.append(f"instruction: {item['instruction']}\n")
+                        policy_log_lines.append(f"action: {out.get('action','')}\n")
+                        policy_log_lines.append("---\n")
 
-            success_rate = successes / len(items) if items else 0.0
+            denom = len(items) * args.num_trials if items else 0.0
+            success_rate = successes / denom if denom else 0.0
             stats = aggregate_stats(stats_list)
 
             results.append({
@@ -248,7 +271,7 @@ def main():
     out_base.parent.mkdir(parents=True, exist_ok=True)
 
     with open(out_base.with_suffix(".json"), "w") as f:
-        json.dump({"results": results, "overall": overall, "seed": 0}, f, indent=2)
+        json.dump({"results": results, "overall": overall, "seed": 0, "num_trials": args.num_trials}, f, indent=2)
 
     csv_path = out_base.with_suffix(".csv")
     with open(csv_path, "w", newline="") as f:
@@ -257,6 +280,10 @@ def main():
         writer.writeheader()
         for row in results:
             writer.writerow(row)
+    if args.save_policies:
+        txt_path = out_base.with_suffix(".txt")
+        with open(txt_path, "w") as f:
+            f.writelines(policy_log_lines)
 
     # Print best theta and trade-off
     best_theta = max(overall.keys(), key=lambda t: overall[t]["overall_success_rate"])
