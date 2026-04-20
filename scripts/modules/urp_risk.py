@@ -1,10 +1,18 @@
 # moduli/urp.py
 
 import openai
-from openai import OpenAI
+import time
 #import spacy
 import requests
 from scripts.modules.conceptnet_backend import get_conceptnet_relations as cn_get_relations
+from scripts.modules.semantic_cache import (
+    get_cached_embedding,
+    get_cached_keywords,
+    get_openai_client,
+    get_cached_urp_object_keyword_similarities,
+    get_cached_urp_request_similarities,
+    log_openai_call,
+)
 import numpy as np
 
 
@@ -30,28 +38,13 @@ use_obj_query = True
 
 
 def extract_keywords_llm(text, llm_temperature=0):
-    prompt = f"Extract the most important keywords (max 2) from the following text (must be single words):\n\n{text}"
-    client = openai.OpenAI()
-    response = client.chat.completions.create(
-        model="gpt-4o-mini",
-        messages=[
-            {"role": "system", "content": "Pay attention to the meaning of the sentence."},
-            {"role": "user", "content": prompt}
-        ],
-        temperature=llm_temperature
-    )
-    keywords = response.choices[0].message.content.strip()
-    keywords_list = [keyword.strip() for keyword in keywords.split(',')]
-
-
+    keywords_list = get_cached_keywords(text, model="gpt-4o-mini", llm_temperature=llm_temperature)
     print('Keywords: ', keywords_list)
     return keywords_list
 
 
 def compute_embedding(text, model="text-embedding-ada-002"):
-    response = openai.embeddings.create(input=text, model=model)
-    embedding = response.data[0].embedding
-    return np.array(embedding)
+    return get_cached_embedding(text, model=model)
 
 
 def get_conceptnet_relations(keyword):
@@ -189,14 +182,18 @@ def URP_risk(user_message, found_objects, objects_info, use_OPE, rel_objects, th
 
     if use_KG_query_request:
         keywords = extract_keywords_llm(user_message, llm_temperature=llm_temperature)
-        user_request_embedding = compute_embedding(user_message)
         conceptnet_relations = []
         for keyword in keywords:
             relations = get_conceptnet_relations(keyword)
-            relation_embeddings = compute_relation_embeddings(relations)
-            filtered_relations_kw, total = filter_relations_by_similarity(
-                relation_embeddings, user_request_embedding, threshold=theta, return_counts=True
+            relation_scores = get_cached_urp_request_similarities(
+                instruction=user_message,
+                query=keyword,
+                relations=relations,
+                kind="urp_risk_keyword_to_request",
             )
+            total = len(relation_scores)
+            filtered_relations_kw = [(relation, similarity) for relation, similarity in relation_scores if similarity >= theta]
+            filtered_relations_kw.sort(key=lambda x: x[1], reverse=True)
             conceptnet_relations.extend(filtered_relations_kw)
             if stats is not None:
                 stats["urp_relations_total"] = stats.get("urp_relations_total", 0) + total
@@ -211,28 +208,24 @@ def URP_risk(user_message, found_objects, objects_info, use_OPE, rel_objects, th
     if use_KG_query_objects:
         keywords = extract_keywords_llm(user_message, llm_temperature=llm_temperature)
 
-        keyword_embeddings = []
-        for keyword in keywords:
-            emb = compute_embedding(keyword)
-            keyword_embeddings.append((keyword, emb))
-
         conceptnet_relations_obj = []
         for obj in rel_objects:
             rel_obj = get_conceptnet_relations(obj)
-            conceptnet_relations_obj.extend(rel_obj)
+            relation_scores = get_cached_urp_object_keyword_similarities(
+                instruction=user_message,
+                query=obj,
+                relations=rel_obj,
+                keywords=keywords,
+                kind="urp_risk_object_to_keywords",
+            )
+            conceptnet_relations_obj.extend([(relation, similarity) for relation, similarity in relation_scores if similarity >= theta])
+            if stats is not None:
+                stats["urp_relations_total"] = stats.get("urp_relations_total", 0) + len(relation_scores)
+                stats["urp_relations_kept"] = stats.get("urp_relations_kept", 0) + len(
+                    [(relation, similarity) for relation, similarity in relation_scores if similarity >= theta]
+                )
 
-        relation_embeddings_obj = compute_relation_embeddings(conceptnet_relations_obj)
-
-        filtered_relations_obj = []
-        for relation, rel_emb in relation_embeddings_obj:
-            max_similarity = 0
-            for keyword, kw_emb in keyword_embeddings:
-                similarity = cosine_similarity(rel_emb, kw_emb)
-                if similarity > max_similarity:
-                    max_similarity = similarity
-            if max_similarity >= theta: 
-                filtered_relations_obj.append((relation, max_similarity))
-
+        filtered_relations_obj = conceptnet_relations_obj
         filtered_relations_obj.sort(key=lambda x: x[1], reverse=True)
 
         system_message += "\n\nRelevant Object Relations from ConceptNet (Object-Keyword Similarity):\n"
@@ -242,15 +235,15 @@ def URP_risk(user_message, found_objects, objects_info, use_OPE, rel_objects, th
         conceptnet_relations_key = []
         for keyword in keywords:
             rel_key = get_conceptnet_relations(keyword)
-            conceptnet_relations_key.extend(rel_key)
+            relation_scores = get_cached_urp_request_similarities(
+                instruction=user_message,
+                query=keyword,
+                relations=rel_key,
+                kind="urp_risk_keyword_relations_to_request",
+            )
+            conceptnet_relations_key.extend([(relation, similarity) for relation, similarity in relation_scores if similarity >= theta])
 
-        relation_embeddings_key = compute_relation_embeddings(conceptnet_relations_key)
-
-        user_request_embedding = compute_embedding(user_message)
-
-        filtered_relations_key = filter_relations_by_similarity(
-            relation_embeddings_key, user_request_embedding, threshold=theta
-        )
+        filtered_relations_key = conceptnet_relations_key
 
         system_message += "\nRelevant Keyword Relations from ConceptNet (Keyword-User Request Similarity):\n"
         for relation, similarity in filtered_relations_key:
@@ -261,7 +254,8 @@ def URP_risk(user_message, found_objects, objects_info, use_OPE, rel_objects, th
     print(system_message)
 
     if use_request_processing:
-        client = openai.OpenAI()
+        client = get_openai_client()
+        start = time.monotonic()
         response = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
@@ -270,6 +264,7 @@ def URP_risk(user_message, found_objects, objects_info, use_OPE, rel_objects, th
             ],
             temperature=llm_temperature
         )
+        log_openai_call("urp_risk", user_message, time.monotonic() - start)
         response_message = response.choices[0].message.content
 
         print('\nResponse Message:')

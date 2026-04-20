@@ -1,0 +1,108 @@
+{
+  "results": [
+    {
+      "theta": 0.65,
+      "category": "explicit_unambiguous",
+      "success_rate": 0.0,
+      "relations_total": 4617,
+      "relations_kept": 4617,
+      "avg_relations_per_object": 17.08,
+      "avg_relations_per_object_before": 17.08,
+      "avg_relations_per_keyword": 116.28571428571429,
+      "avg_relations_per_keyword_before": 116.28571428571429,
+      "ope_relations_total": 2989,
+      "ope_relations_kept": 2989,
+      "urp_relations_total": 1628,
+      "urp_relations_kept": 1628
+    },
+    {
+      "theta": 0.7,
+      "category": "explicit_unambiguous",
+      "success_rate": 0.0,
+      "relations_total": 4617,
+      "relations_kept": 4615,
+      "avg_relations_per_object": 17.08,
+      "avg_relations_per_object_before": 17.08,
+      "avg_relations_per_keyword": 116.14285714285714,
+      "avg_relations_per_keyword_before": 116.28571428571429,
+      "ope_relations_total": 2989,
+      "ope_relations_kept": 2989,
+      "urp_relations_total": 1628,
+      "urp_relations_kept": 1626
+    },
+    {
+      "theta": 0.75,
+      "category": "explicit_unambiguous",
+      "success_rate": 0.0,
+      "relations_total": 4617,
+      "relations_kept": 3946,
+      "avg_relations_per_object": 14.6,
+      "avg_relations_per_object_before": 17.08,
+      "avg_relations_per_keyword": 99.35714285714286,
+      "avg_relations_per_keyword_before": 116.28571428571429,
+      "ope_relations_total": 2989,
+      "ope_relations_kept": 2555,
+      "urp_relations_total": 1628,
+      "urp_relations_kept": 1391
+    },
+    {
+      "theta": 0.8,
+      "category": "explicit_unambiguous",
+      "success_rate": 0.0,
+      "relations_total": 4617,
+      "relations_kept": 386,
+      "avg_relations_per_object": 0.96,
+      "avg_relations_per_object_before": 17.08,
+      "avg_relations_per_keyword": 15.571428571428571,
+      "avg_relations_per_keyword_before": 116.28571428571429,
+      "ope_relations_total": 2989,
+      "ope_relations_kept": 168,
+      "urp_relations_total": 1628,
+      "urp_relations_kept": 218
+    },
+    {
+      "theta": 0.85,
+      "category": "explicit_unambiguous",
+      "success_rate": 0.0,
+      "relations_total": 4617,
+      "relations_kept": 71,
+      "avg_relations_per_object": 0.0,
+      "avg_relations_per_object_before": 17.08,
+      "avg_relations_per_keyword": 5.071428571428571,
+      "avg_relations_per_keyword_before": 116.28571428571429,
+      "ope_relations_total": 2989,
+      "ope_relations_kept": 0,
+      "urp_relations_total": 1628,
+      "urp_relations_kept": 71
+    }
+  ],
+  "overall": {
+    "0.65": {
+      "overall_success_rate": 0.0,
+      "avg_relations_per_object": 17.08,
+      "avg_relations_per_keyword": 116.28571428571429
+    },
+    "0.7": {
+      "overall_success_rate": 0.0,
+      "avg_relations_per_object": 17.08,
+      "avg_relations_per_keyword": 116.14285714285714
+    },
+    "0.75": {
+      "overall_success_rate": 0.0,
+      "avg_relations_per_object": 14.6,
+      "avg_relations_per_keyword": 99.35714285714286
+    },
+    "0.8": {
+      "overall_success_rate": 0.0,
+      "avg_relations_per_object": 0.96,
+      "avg_relations_per_keyword": 15.571428571428571
+    },
+    "0.85": {
+      "overall_success_rate": 0.0,
+      "avg_relations_per_object": 0.0,
+      "avg_relations_per_keyword": 5.071428571428571
+    }
+  },
+  "seed": 0,
+  "num_trials": 1
+}

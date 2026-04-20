@@ -2,9 +2,15 @@
 
 import openai
 import os
-from openai import OpenAI
+import time
 import requests
 from scripts.modules.conceptnet_backend import get_conceptnet_relations as cn_get_relations
+from scripts.modules.semantic_cache import (
+    get_cached_embedding,
+    get_cached_ope_similarities,
+    get_openai_client,
+    log_openai_call,
+)
 import numpy as np
 import re
 
@@ -16,12 +22,7 @@ use_kg = True
 openai.api_key = os.getenv("OPENAI_API_KEY", "")
 
 def compute_embedding(text, model="text-embedding-ada-002"):
-    response = openai.embeddings.create(
-        input=text,
-        model=model
-    )
-    embedding = response.data[0].embedding
-    return np.array(embedding)
+    return get_cached_embedding(text, model=model)
 
 def get_conceptnet_relations(object_name):
     relevant_relations = {'MadeOf', 'UsedFor', 'IsA', 'HasProperty', 'CapableOf', 'PartOf', 'RelatedTo'}
@@ -106,21 +107,18 @@ def OPE(found_objects, rel_objects, theta=0.75, stats=None, llm_temperature=0):
 
     if use_kg:
         print("Computing embeddings for properties:")
-        for prop in properties:
-            embedding = compute_embedding(prop)
-            property_embeddings[prop] = embedding
-
         for obj in rel_objects:
             print(f"\nProcessing object: {obj}")
-            obj_embedding = compute_embedding(obj)
-
             relations = get_conceptnet_relations(obj)
-
-            relation_embeddings = compute_relation_embeddings(relations)
-
-            filtered_relations, total = filter_relations_by_similarity(
-                relation_embeddings, property_embeddings, threshold=theta, return_counts=True
+            relation_scores = get_cached_ope_similarities(
+                query=obj,
+                relations=relations,
+                targets=properties,
+                kind="ope_standard",
             )
+            total = len(relation_scores)
+            filtered_relations = [(relation, similarity) for relation, similarity in relation_scores if similarity >= theta]
+            filtered_relations.sort(key=lambda x: x[1], reverse=True)
 
             if stats is not None:
                 stats["ope_relations_total"] = stats.get("ope_relations_total", 0) + total
@@ -143,7 +141,8 @@ def OPE(found_objects, rel_objects, theta=0.75, stats=None, llm_temperature=0):
     print("\nUser message:")
     print(user_message)
 
-    client = OpenAI()
+    client = get_openai_client()
+    start = time.monotonic()
     request = client.chat.completions.create(
         model="gpt-4o-mini",
         messages=[
@@ -152,6 +151,7 @@ def OPE(found_objects, rel_objects, theta=0.75, stats=None, llm_temperature=0):
         ],
         temperature=llm_temperature
     )
+    log_openai_call("ope", user_message, time.monotonic() - start)
 
     response_message = request.choices[0].message
     content = response_message.content

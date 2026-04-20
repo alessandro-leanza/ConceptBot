@@ -1,5 +1,6 @@
 import json
 import os
+import re
 from pathlib import Path
 from typing import List, Tuple, Optional, Any
 
@@ -58,6 +59,17 @@ def _normalize_word(word: str) -> str:
     return word.strip().lower()
 
 
+def _clean_text(text: str) -> str:
+    text = text.strip()
+    text = re.sub(r"`", "", text)
+    text = re.sub(r"\\*\\*", "", text)
+    text = re.sub(r"\\*", "", text)
+    text = re.sub(r"\\[.*?\\]", "", text)
+    text = re.sub(r"\\(.*?\\)", "", text)
+    text = text.replace("**", "").replace("*", "")
+    return text.strip()
+
+
 def _parse_hf_result(word: str, result: Any, relations: List[str]) -> List[Tuple[str, str, str]]:
     """
     Convert HF response into list of (start, rel, end) triples.
@@ -100,16 +112,58 @@ def _parse_hf_result(word: str, result: Any, relations: List[str]) -> List[Tuple
     # Fallback: parse text lines
     if isinstance(result, str):
         lines = [ln.strip() for ln in result.splitlines() if ln.strip()]
+        current_rel = None
+        rel_set = set(relations)
         for ln in lines:
-            for rel in relations:
-                if ln.startswith(rel + ":"):
-                    end = ln.split(":", 1)[1].strip()
-                    if end:
-                        triples.append((word, rel, end))
+            if ln.startswith("## "):
+                header = ln[3:].strip()
+                current_rel = header if header in rel_set else None
+                continue
+
+            if "→" not in ln:
+                continue
+
+            # Example line:
+            # - **apple** IsA → *fruit* [12.3]
+            # - *stem* PartOf → **apple** [1.0]
+            line = ln.lstrip("- ").strip()
+
+            rel_in_line = None
+            for rel in rel_set:
+                if f" {rel} " in line:
+                    rel_in_line = rel
                     break
+            rel_used = rel_in_line or current_rel
+            if rel_used not in rel_set:
+                continue
+
+            left, right = line.split("→", 1)
+            left = _clean_text(left)
+            right = _clean_text(right)
+
+            # Remove relation token from left side if present
+            if rel_used in left:
+                left = left.replace(rel_used, "").strip()
+
+            start = left
+            end = right
+            end = end.replace("**", "").replace("*", "").strip()
+            start = start.replace("**", "").replace("*", "").strip()
+            if start and end:
+                triples.append((start, rel_used, end))
         return triples
 
     return triples
+
+
+def _normalize_triples(triples: List[Any]) -> List[Tuple[str, str, str]]:
+    norm = []
+    for t in triples:
+        if isinstance(t, tuple):
+            norm.append(t)
+        elif isinstance(t, list) and len(t) >= 3:
+            norm.append((str(t[0]), str(t[1]), str(t[2])))
+    return norm
 
 
 def get_conceptnet_relations(
@@ -130,9 +184,10 @@ def get_conceptnet_relations(
     if cache_only is None:
         cache_only = os.getenv("CONCEPTNET_CACHE_ONLY", "0") == "1"
 
-    if cache_key in cache:
+    force_refresh = os.getenv("CONCEPTNET_FORCE_REFRESH", "0") == "1"
+    if cache_key in cache and not force_refresh:
         print(f"[ConceptNet] cache hit: {cache_key}")
-        return cache[cache_key]
+        return _normalize_triples(cache[cache_key])
 
     if cache_only:
         print(f"[ConceptNet] cache miss (cache-only): {cache_key}")
@@ -154,4 +209,4 @@ def get_conceptnet_relations(
     cache[cache_key] = triples
     _save_cache(cache)
     print(f"[ConceptNet] fetched: {cache_key} (triples={len(triples)})")
-    return triples
+    return _normalize_triples(triples)

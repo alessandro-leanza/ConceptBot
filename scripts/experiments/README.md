@@ -20,12 +20,29 @@ Outputs:
 - `results/threshold_sweep.csv`
 - `results/threshold_sweep.txt` (if `--save-policies`)
 
+Logging:
+- default terminal output is compact progress only: `theta / category / instruction id / trial`
+- use `--verbose` to re-enable module-level prints from OPE/URP/backend
+
 ## Prefetch ConceptNet Cache
 Populate local cache for offline runs.
 
 ```bash
 PYTHONPATH=. python scripts/experiments/prefetch_conceptnet_cache.py
 ```
+
+## Precompute Semantic Cache
+Populate keyword, embedding, and similarity caches so the theta sweep only needs to filter cached similarities.
+
+```bash
+PYTHONPATH=. python scripts/experiments/precompute_similarity_cache.py
+```
+
+Generated caches:
+- `cache/conceptnet_cache.json`
+- `cache/keyword_cache.json`
+- `cache/embedding_cache.json`
+- `cache/similarity_cache.json`
 
 ## Validate Instructions
 Sanity check for instruction JSON files.

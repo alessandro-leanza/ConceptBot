@@ -2,17 +2,30 @@
 
 import openai
 import os
-from openai import OpenAI
+import time
 import requests
 from scripts.modules.conceptnet_backend import get_conceptnet_relations as cn_get_relations
+from scripts.modules.semantic_cache import (
+    get_cached_embedding,
+    get_cached_ope_similarities,
+    get_openai_client,
+    log_openai_call,
+)
 import numpy as np
 import re
-import wikipediaapi
-import wikipedia
+try:
+    import wikipediaapi
+    import wikipedia
+except Exception:
+    wikipediaapi = None
+    wikipedia = None
 # import spacy
 from typing import List
 
-from openie import StanfordOpenIE
+try:
+    from openie import StanfordOpenIE
+except Exception:
+    StanfordOpenIE = None
 # Carica modello NLP
 # nlp = spacy.load("en_core_web_sm")
 
@@ -24,19 +37,14 @@ from sklearn.preprocessing import normalize
 
 use_proc_names = False
 use_obj_prop = True
-use_kg = False
+use_kg = True
 use_wiki = False
 
 # Set your OpenAI API key from environment (if provided)
 openai.api_key = os.getenv("OPENAI_API_KEY", "")
 
 def compute_embedding(text, model="text-embedding-ada-002"):
-    response = openai.embeddings.create(
-        input=text,
-        model=model
-    )
-    embedding = response.data[0].embedding
-    return np.array(embedding)
+    return get_cached_embedding(text, model=model)
 
 def get_conceptnet_relations(object_name):
     relevant_relations = {'MadeOf', 'UsedFor', 'IsA', 'HasProperty', 'CapableOf', 'PartOf', 'RelatedTo'}
@@ -113,6 +121,8 @@ def extract_openie_triples(text: str):
         list: A list of triples (subject, relation, object).
     """
     triples = []
+    if StanfordOpenIE is None:
+        return []
     with StanfordOpenIE() as client:
         extracted = client.annotate(text)
         triples = [(triple['subject'], triple['relation'], triple['object']) for triple in extracted]
@@ -122,6 +132,8 @@ def extract_wikipedia_triples(text: str, property_embeddings: dict) -> List[tupl
     """
     It extracts triples from Wikipedia text and filters them using similarity cosines.
     """
+    if StanfordOpenIE is None:
+        return []
     with StanfordOpenIE() as client:
         triples = client.annotate(text)
     
@@ -248,6 +260,8 @@ def fetch_wikipedia_content(label):
     Retrieves the content of the Wikipedia page given a label.
     In case of ambiguity, it allows the user to manually choose the correct page.
     """
+    if wikipedia is None:
+        return None
     wikipedia.set_lang("en")
     wikipedia.headers = {
         "User-Agent": "" #### Insert your User-Agent
@@ -376,10 +390,15 @@ def process_object(object_name, property_embeddings, theta=0.75, stats=None, use
     relations_conceptnet = get_conceptnet_relations(object_name) if use_kg else []
     filtered_relations_conceptnet = []
     if relations_conceptnet:
-        relation_embeddings = compute_relation_embeddings(relations_conceptnet)
-        filtered_relations_conceptnet, total = filter_relations_by_similarity(
-            relation_embeddings, property_embeddings, threshold=theta, return_counts=True
+        relation_scores = get_cached_ope_similarities(
+            query=object_name,
+            relations=relations_conceptnet,
+            targets=list(property_embeddings.keys()),
+            kind="ope_risk",
         )
+        total = len(relation_scores)
+        filtered_relations_conceptnet = [(relation, similarity) for relation, similarity in relation_scores if similarity >= theta]
+        filtered_relations_conceptnet.sort(key=lambda x: x[1], reverse=True)
         if stats is not None:
             stats["ope_relations_total"] = stats.get("ope_relations_total", 0) + total
             stats["ope_relations_kept"] = stats.get("ope_relations_kept", 0) + len(filtered_relations_conceptnet)
@@ -500,7 +519,8 @@ def OPE_score_par(found_objects, rel_objects, user_request, theta=0.75, stats=No
     print("\nUser message:")
     print(user_message)
 
-    client = OpenAI()
+    client = get_openai_client()
+    start = time.monotonic()
     request = client.chat.completions.create(
         model="gpt-4o-mini",
         messages=[
@@ -509,6 +529,7 @@ def OPE_score_par(found_objects, rel_objects, user_request, theta=0.75, stats=No
         ],
         temperature=llm_temperature
     )
+    log_openai_call("ope_risk", user_message, time.monotonic() - start)
 
     response_message = request.choices[0].message
     content = response_message.content

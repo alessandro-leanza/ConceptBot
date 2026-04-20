@@ -2,9 +2,15 @@
 
 import openai
 import os
-from openai import OpenAI
+import time
 import requests
 from scripts.modules.conceptnet_backend import get_conceptnet_relations as cn_get_relations
+from scripts.modules.semantic_cache import (
+    get_cached_embedding,
+    get_cached_ope_similarities,
+    get_openai_client,
+    log_openai_call,
+)
 import numpy as np
 import re
 
@@ -16,12 +22,7 @@ use_kg = True
 openai.api_key = os.getenv("OPENAI_API_KEY", "")
 
 def compute_embedding(text, model="text-embedding-ada-002"):
-    response = openai.embeddings.create(
-        input=text,
-        model=model
-    )
-    embedding = response.data[0].embedding
-    return np.array(embedding)
+    return get_cached_embedding(text, model=model)
 
 def get_conceptnet_relations(object_name):
     relevant_relations = {'MadeOf', 'UsedFor', 'IsA', 'HasProperty', 'CapableOf', 'PartOf', 'RelatedTo'}
@@ -86,9 +87,6 @@ def OPE_mat(found_objects, rel_objects, theta=0.75, stats=None, llm_temperature=
     materials = ["metal", "plastic", "glass", "wood", "ceramic", "fabric", "wax"]
     material_embeddings = {}
     print("Computing embeddings for materials...")
-    for mat in materials:
-        embedding = compute_embedding(mat)
-        material_embeddings[mat] = embedding
 
     system_message = (
         "You are an expert in object materials. For each object, analyze the provided relationships to determine its materials. "
@@ -109,11 +107,15 @@ def OPE_mat(found_objects, rel_objects, theta=0.75, stats=None, llm_temperature=
                 print(f"  {rel}")
             print(f"Total relations found: {len(relations)}\n")
 
-            relation_embeddings = compute_relation_embeddings(relations)
-
-            filtered_relations, total = filter_relations_by_similarity(
-                relation_embeddings, material_embeddings, threshold=theta, return_counts=True
+            relation_scores = get_cached_ope_similarities(
+                query=obj,
+                relations=relations,
+                targets=materials,
+                kind="ope_materials",
             )
+            total = len(relation_scores)
+            filtered_relations = [(relation, similarity) for relation, similarity in relation_scores if similarity >= theta]
+            filtered_relations.sort(key=lambda x: x[1], reverse=True)
             print(f"Filtered relations for '{obj}' (Similarity >= {theta}):")
             for (relation, similarity) in filtered_relations:
                 print(f"Relation: {relation}, Similarity: {similarity}")
@@ -140,7 +142,8 @@ def OPE_mat(found_objects, rel_objects, theta=0.75, stats=None, llm_temperature=
     print("\nUser message:")
     print(user_message)
 
-    client = OpenAI()
+    client = get_openai_client()
+    start = time.monotonic()
     request = client.chat.completions.create(
         model="gpt-4o-mini",
         messages=[
@@ -149,6 +152,7 @@ def OPE_mat(found_objects, rel_objects, theta=0.75, stats=None, llm_temperature=
         ],
         temperature=llm_temperature
     )
+    log_openai_call("ope_materials", user_message, time.monotonic() - start)
 
     response_message = request.choices[0].message
     content = response_message.content

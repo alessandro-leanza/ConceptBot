@@ -1,8 +1,6 @@
-import openai
 import numpy as np
-import tiktoken 
-from heapq import nlargest
-import matplotlib.pyplot as plt
+from scripts.modules.semantic_cache import get_openai_client, log_openai_call
+import time
 
 
 LLM_CACHE = {}
@@ -18,7 +16,9 @@ def gpt3_call(model="gpt-4o-mini", call_law='', query='', temperature=0, max_tok
         print('Cache hit, returning')
         return LLM_CACHE[id], LLM_CACHE[id], LLM_CACHE[id]
 
-    response = openai.chat.completions.create(
+    client = get_openai_client()
+    start = time.monotonic()
+    response = client.chat.completions.create(
         model=model,
         messages = [
             {"role": "system", "content": call_law},
@@ -29,6 +29,7 @@ def gpt3_call(model="gpt-4o-mini", call_law='', query='', temperature=0, max_tok
         logprobs=logprobs
     )
 
+    log_openai_call("planner_iter", query, time.monotonic() - start)
     response_message = response.choices[0].message
     content = response_message.content
 
@@ -172,10 +173,16 @@ def step_to_nlp(step):
   return "Pick the " + pick + " and place it on the " + place + "."
 
 def normalize_scores(scores):
+    if not scores:
+        return {}
+
     # Trova il punteggio massimo e minimo
     min_score = min(scores.values())
     max_score = max(scores.values())
-    max_distance_from_zero = abs(min_score)
+    max_distance_from_zero = max(abs(min_score), abs(max_score))
+
+    if max_distance_from_zero == 0:
+        return {key: 1.0 for key in scores}
 
     normed_scores = {}
     for key, score in scores.items():
@@ -258,6 +265,8 @@ def ITER(found_objects, PICK_TARGETS, PLACE_TARGETS, query, model="gpt-4o-mini",
         LLM_CACHE={} 
         llm_scores, res = gpt3_scoring(query, gpt3_prompt, commands_string, options_begin, model="gpt-4o-mini", top_logprobs=5, verbose=True)
         normalized_llm_scores = normalize_scores(llm_scores)
+        if not normalized_llm_scores:
+            break
         print('NORMALIZED LLM SCORES:', normalized_llm_scores)
         combined_scores = {}
         for option, llm_score in normalized_llm_scores.items():
@@ -267,9 +276,11 @@ def ITER(found_objects, PICK_TARGETS, PLACE_TARGETS, query, model="gpt-4o-mini",
                 affordance_score = affordance_scores[option]
                 print('AFF SCORE: ', affordance_score)          
                 combined_scores[option] = llm_score * affordance_score
-            if combined_scores:
-                selected_task = max(combined_scores, key=combined_scores.get)
-                print("Selecting:", selected_task)
+        if combined_scores:
+            selected_task = max(combined_scores, key=combined_scores.get)
+            print("Selecting:", selected_task)
+        else:
+            break
 
         steps_text.append(selected_task)
         print(num_tasks, "Selecting: ", selected_task)
