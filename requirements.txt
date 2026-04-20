@@ -1,0 +1,30 @@
+# Core dependencies for the ConceptBot research/evaluation pipeline
+openai
+numpy
+requests
+scikit-learn
+gradio_client
+matplotlib
+tiktoken
+
+# Optional knowledge-source extras
+wikipedia-api
+wikipedia
+
+# Optional / environment-specific packages
+# Install these only if you use the corresponding modules.
+#
+# Real robot / perception stack:
+# opencv-python
+# ultralytics
+# supervision
+# pyrealsense2
+# scipy
+#
+# ROS / Franka / lab-specific packages:
+# rospy
+# autolab-core
+# frankapy
+#
+# Optional OpenIE dependency used by the Wikipedia fallback in `ope_score_par.py`:
+# openie
