@@ -2,3 +2,6 @@
 __pycache__/
 *.pyc
 cache/
+results/
+scripts/experiments/theta/results/*
+!scripts/experiments/theta/results/.gitkeep

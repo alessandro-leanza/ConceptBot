@@ -33,5 +33,5 @@ python instructions/load_instructions.py explicit_unambiguous
 Validate instruction files:
 
 ```bash
-python scripts/experiments/validate_instructions.py
+python scripts/experiments/theta/validate_instructions.py
 ```

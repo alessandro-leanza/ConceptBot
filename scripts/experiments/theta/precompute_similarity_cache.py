@@ -24,6 +24,8 @@ DEFAULT_CATEGORIES = [
 OPE_STANDARD_TARGETS = ["dangerous", "fragile", "deformable", "hold liquid", "safe", "stable", "poisonous"]
 OPE_MATERIAL_TARGETS = ["metal", "plastic", "glass", "wood", "ceramic", "fabric", "wax"]
 OPE_RISK_TARGETS = ["dangerous"]
+OPE_RELATIONS = sorted(["MadeOf", "UsedFor", "IsA", "HasProperty", "CapableOf", "PartOf", "RelatedTo"])
+URP_RELATIONS = sorted(["IsA", "UsedFor", "HasProperty", "CapableOf", "MannerOf"])
 
 
 def precompute_item(category: str, item: dict) -> None:
@@ -32,7 +34,7 @@ def precompute_item(category: str, item: dict) -> None:
     keywords = get_cached_keywords(instruction, model="gpt-4o-mini", llm_temperature=0)
 
     for obj in objects:
-        obj_relations = get_conceptnet_relations(obj)
+        obj_relations = get_conceptnet_relations(obj, relations=OPE_RELATIONS)
         if category == "materials":
             get_cached_ope_similarities(obj, obj_relations, OPE_MATERIAL_TARGETS, kind="ope_materials")
         elif category == "risk_aware":
@@ -41,16 +43,17 @@ def precompute_item(category: str, item: dict) -> None:
             get_cached_ope_similarities(obj, obj_relations, OPE_STANDARD_TARGETS, kind="ope_standard")
             if category == "toxicity":
                 get_cached_ope_similarities(obj, obj_relations, OPE_STANDARD_TARGETS, kind="ope_standard")
+        urp_obj_relations = get_conceptnet_relations(obj, relations=URP_RELATIONS)
         get_cached_urp_object_keyword_similarities(
             instruction=instruction,
             query=obj,
-            relations=obj_relations,
+            relations=urp_obj_relations,
             keywords=keywords,
             kind="urp_object_to_keywords" if category != "risk_aware" else "urp_risk_object_to_keywords",
         )
 
     for keyword in keywords:
-        keyword_relations = get_conceptnet_relations(keyword)
+        keyword_relations = get_conceptnet_relations(keyword, relations=URP_RELATIONS)
         get_cached_urp_request_similarities(
             instruction=instruction,
             query=keyword,

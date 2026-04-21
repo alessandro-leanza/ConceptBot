@@ -1,6 +1,0 @@
-theta,category,success_rate,relations_total,relations_kept,avg_relations_per_object,avg_relations_per_object_before,avg_relations_per_keyword,avg_relations_per_keyword_before,ope_relations_total,ope_relations_kept,urp_relations_total,urp_relations_kept
-0.65,explicit_unambiguous,0.0,4617,4617,17.08,17.08,116.28571428571429,116.28571428571429,2989,2989,1628,1628
-0.7,explicit_unambiguous,0.0,4617,4615,17.08,17.08,116.14285714285714,116.28571428571429,2989,2989,1628,1626
-0.75,explicit_unambiguous,0.0,4617,3946,14.6,17.08,99.35714285714286,116.28571428571429,2989,2555,1628,1391
-0.8,explicit_unambiguous,0.0,4617,386,0.96,17.08,15.571428571428571,116.28571428571429,2989,168,1628,218
-0.85,explicit_unambiguous,0.0,4617,71,0.0,17.08,5.071428571428571,116.28571428571429,2989,0,1628,71

@@ -21,6 +21,7 @@ from scripts.modules.semantic_cache import flush_all_caches, get_openai_client, 
 from scripts.modules.ope import OPE
 from scripts.modules.ope_mat import OPE_mat
 from scripts.modules.ope_score_par import OPE_score_par
+from scripts.modules.pl_direct import DIRECT
 from scripts.modules.pl_iter import ITER
 from scripts.modules.urp import URP
 from scripts.modules.urp_risk import URP_risk
@@ -258,7 +259,15 @@ def score_with_gold(item: Dict[str, Any], pred_actions: List[str], policy_meta: 
     return None
 
 
-def _run_item_impl(item: Dict[str, Any], theta: float, category: str, judge_model: str, policy_meta: Dict[str, Any]) -> Dict[str, Any]:
+def _run_item_impl(
+    item: Dict[str, Any],
+    theta: float,
+    category: str,
+    judge_model: str,
+    policy_meta: Dict[str, Any],
+    planner: str,
+    planner_model: str,
+) -> Dict[str, Any]:
     """
     Run OPE + URP and judge the generated action.
     Returns: dict with success and stats.
@@ -295,16 +304,25 @@ def _run_item_impl(item: Dict[str, Any], theta: float, category: str, judge_mode
     place_targets = _planner_targets(found_objects)
     planner_steps = []
     if place_targets:
-        planner_steps = ITER(
-            found_objects=found_objects,
-            PICK_TARGETS=found_objects,
-            PLACE_TARGETS=place_targets,
-            query=urp_action,
-            model="gpt-4o-mini",
-            limit_num_options=max(3, len(found_objects)),
-            verbose=False,
-            top_logprobs=5,
-        )
+        if planner == "iter":
+            planner_steps = ITER(
+                found_objects=found_objects,
+                PICK_TARGETS=found_objects,
+                PLACE_TARGETS=place_targets,
+                query=urp_action,
+                model=planner_model,
+                limit_num_options=max(3, len(found_objects)),
+                verbose=False,
+                top_logprobs=5,
+            )
+        elif planner == "direct":
+            planner_steps = DIRECT(
+                found_objects=found_objects,
+                PICK_TARGETS=found_objects,
+                PLACE_TARGETS=place_targets,
+                query=urp_action,
+                model=planner_model,
+            )
 
     pred_actions = [step for step in planner_steps if step]
     if not pred_actions:
@@ -332,13 +350,15 @@ def run_item(
     category: str,
     judge_model: str,
     policy_meta: Dict[str, Any],
+    planner: str,
+    planner_model: str,
     verbose: bool = False,
 ) -> Dict[str, Any]:
     if verbose:
-        return _run_item_impl(item, theta, category, judge_model, policy_meta)
+        return _run_item_impl(item, theta, category, judge_model, policy_meta, planner, planner_model)
     sink = io.StringIO()
     with redirect_stdout(sink), redirect_stderr(sink):
-        return _run_item_impl(item, theta, category, judge_model, policy_meta)
+        return _run_item_impl(item, theta, category, judge_model, policy_meta, planner, planner_model)
 
 
 def aggregate_stats(stats_list: List[Dict[str, Any]]) -> Dict[str, float]:
@@ -374,10 +394,12 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--theta-list", nargs="+", type=float, default=DEFAULT_THETAS)
     parser.add_argument("--categories", nargs="+", default=DEFAULT_CATEGORIES)
-    parser.add_argument("--out", default="results/threshold_sweep")
+    parser.add_argument("--out", default="scripts/experiments/theta/results/threshold_sweep")
     parser.add_argument("--judge-model", default="gpt-4o-mini")
+    parser.add_argument("--planner", choices=["direct", "iter", "none"], default="direct")
+    parser.add_argument("--planner-model", default="gpt-4o-mini")
     parser.add_argument("--cache-only", action="store_true")
-    parser.add_argument("--num-trials", type=int, default=5)
+    parser.add_argument("--num-trials", type=int, default=1)
     parser.add_argument("--save-policies", action="store_true")
     parser.add_argument("--verbose", action="store_true")
     parser.add_argument("--plot", action="store_true")
@@ -414,6 +436,8 @@ def main():
                         category=category,
                         judge_model=args.judge_model,
                         policy_meta=policy_meta,
+                        planner=args.planner,
+                        planner_model=args.planner_model,
                         verbose=args.verbose,
                     )
                     successes += out["success"]
@@ -474,7 +498,7 @@ def main():
             f.writelines(policy_log_lines)
     if args.plot:
         try:
-            from scripts.experiments.plot_threshold_results import main as plot_main
+            from scripts.experiments.theta.plot_threshold_results import main as plot_main
         except Exception:
             plot_main = None
         if plot_main is not None:

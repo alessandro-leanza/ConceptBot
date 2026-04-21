@@ -1,0 +1,13 @@
+services:
+  conceptbot-exp:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    working_dir: /workspace
+    env_file:
+      - .env
+    environment:
+      PYTHONPATH: /workspace
+    volumes:
+      - .:/workspace
+    command: python scripts/experiments/theta/validate_instructions.py
