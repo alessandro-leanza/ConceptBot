@@ -409,16 +409,42 @@ def aggregate_stats(stats_list: List[Dict[str, Any]]) -> Dict[str, float]:
     ope_total = sum(s.get("ope_relations_total", 0) for s in stats_list)
     ope_kept = sum(s.get("ope_relations_kept", 0) for s in stats_list)
     ope_objects = sum(s.get("ope_objects", 0) for s in stats_list)
+    ope_zero_relation_objects = sum(s.get("ope_zero_relation_objects", 0) for s in stats_list)
 
     urp_total = sum(s.get("urp_relations_total", 0) for s in stats_list)
     urp_kept = sum(s.get("urp_relations_kept", 0) for s in stats_list)
     urp_keywords = sum(s.get("urp_keywords", 0) for s in stats_list)
+    urp_zero_relation_keywords = sum(s.get("urp_zero_relation_keywords", 0) for s in stats_list)
 
     avg_relations_per_object = (ope_kept / ope_objects) if ope_objects else 0.0
     avg_relations_per_object_before = (ope_total / ope_objects) if ope_objects else 0.0
+    zero_relation_object_ratio = (ope_zero_relation_objects / ope_objects) if ope_objects else 0.0
 
     avg_relations_per_keyword = (urp_kept / urp_keywords) if urp_keywords else 0.0
     avg_relations_per_keyword_before = (urp_total / urp_keywords) if urp_keywords else 0.0
+    zero_relation_keyword_ratio = (urp_zero_relation_keywords / urp_keywords) if urp_keywords else 0.0
+
+    zero_relation_queries = ope_zero_relation_objects + urp_zero_relation_keywords
+    total_relation_queries = ope_objects + urp_keywords
+    zero_relation_query_ratio = (zero_relation_queries / total_relation_queries) if total_relation_queries else 0.0
+    zero_relation_object_names = sorted(
+        {
+            name
+            for stats in stats_list
+            for name in stats.get("ope_zero_relation_object_names", [])
+        }
+    )
+    zero_relation_keyword_names = sorted(
+        {
+            name
+            for stats in stats_list
+            for name in stats.get("urp_zero_relation_keyword_names", [])
+        }
+    )
+    zero_relation_terms = sorted(
+        {f"object:{name}" for name in zero_relation_object_names}
+        | {f"keyword:{name}" for name in zero_relation_keyword_names}
+    )
 
     return {
         "relations_total": ope_total + urp_total,
@@ -427,10 +453,22 @@ def aggregate_stats(stats_list: List[Dict[str, Any]]) -> Dict[str, float]:
         "avg_relations_per_object_before": avg_relations_per_object_before,
         "avg_relations_per_keyword": avg_relations_per_keyword,
         "avg_relations_per_keyword_before": avg_relations_per_keyword_before,
+        "ope_objects": ope_objects,
+        "ope_zero_relation_objects": ope_zero_relation_objects,
+        "ope_zero_relation_object_ratio": zero_relation_object_ratio,
         "ope_relations_total": ope_total,
         "ope_relations_kept": ope_kept,
+        "urp_keywords": urp_keywords,
+        "urp_zero_relation_keywords": urp_zero_relation_keywords,
+        "urp_zero_relation_keyword_ratio": zero_relation_keyword_ratio,
         "urp_relations_total": urp_total,
         "urp_relations_kept": urp_kept,
+        "zero_relation_queries": zero_relation_queries,
+        "total_relation_queries": total_relation_queries,
+        "zero_relation_query_ratio": zero_relation_query_ratio,
+        "ope_zero_relation_object_names": "; ".join(zero_relation_object_names),
+        "urp_zero_relation_keyword_names": "; ".join(zero_relation_keyword_names),
+        "zero_relation_terms": "; ".join(zero_relation_terms),
     }
 
 

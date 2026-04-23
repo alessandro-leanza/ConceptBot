@@ -403,6 +403,9 @@ def process_object(object_name, property_embeddings, theta=0.75, stats=None, use
             stats["ope_relations_total"] = stats.get("ope_relations_total", 0) + total
             stats["ope_relations_kept"] = stats.get("ope_relations_kept", 0) + len(filtered_relations_conceptnet)
             stats["ope_objects"] = stats.get("ope_objects", 0) + 1
+            if not filtered_relations_conceptnet:
+                stats["ope_zero_relation_objects"] = stats.get("ope_zero_relation_objects", 0) + 1
+                stats.setdefault("ope_zero_relation_object_names", []).append(object_name)
         if len(filtered_relations_conceptnet) == 0:
             print(f"No relations from ConceptNet above threshold for '{object_name}'")
 
@@ -425,6 +428,9 @@ def process_object(object_name, property_embeddings, theta=0.75, stats=None, use
                 stats["ope_relations_total"] = stats.get("ope_relations_total", 0) + total
                 stats["ope_relations_kept"] = stats.get("ope_relations_kept", 0) + len(keyword_filtered_triples)
                 stats["ope_objects"] = stats.get("ope_objects", 0) + 1
+                if not keyword_filtered_triples:
+                    stats["ope_zero_relation_objects"] = stats.get("ope_zero_relation_objects", 0) + 1
+                    stats.setdefault("ope_zero_relation_object_names", []).append(object_name)
 
             deduplicated_triples, deduplicated_embeddings = cluster_and_deduplicate_relations(
                 [f"{triple[0]} {triple[1]} {triple[2]}" for triple, _ in keyword_filtered_triples]
@@ -442,6 +448,9 @@ def process_object(object_name, property_embeddings, theta=0.75, stats=None, use
                     stats["ope_relations_total"] = stats.get("ope_relations_total", 0) + total
                     stats["ope_relations_kept"] = stats.get("ope_relations_kept", 0) + len(relations_wikipedia)
                     stats["ope_objects"] = stats.get("ope_objects", 0) + 1
+                    if not relations_wikipedia:
+                        stats["ope_zero_relation_objects"] = stats.get("ope_zero_relation_objects", 0) + 1
+                        stats.setdefault("ope_zero_relation_object_names", []).append(object_name)
 
     filtered_relations = filtered_relations_conceptnet + relations_wikipedia
 

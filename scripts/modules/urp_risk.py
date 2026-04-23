@@ -199,6 +199,9 @@ def URP_risk(user_message, found_objects, objects_info, use_OPE, rel_objects, th
                 stats["urp_relations_total"] = stats.get("urp_relations_total", 0) + total
                 stats["urp_relations_kept"] = stats.get("urp_relations_kept", 0) + len(filtered_relations_kw)
                 stats["urp_keywords"] = stats.get("urp_keywords", 0) + 1
+                if not filtered_relations_kw:
+                    stats["urp_zero_relation_keywords"] = stats.get("urp_zero_relation_keywords", 0) + 1
+                    stats.setdefault("urp_zero_relation_keyword_names", []).append(keyword)
 
         filtered_relations = conceptnet_relations
         system_message += "\nRelevant Relations from ConceptNet:\n"

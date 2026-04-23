@@ -1,12 +1,51 @@
 import argparse
+import csv
 import json
 import math
 from pathlib import Path
 
 
 DEFAULT_RESULTS_DIR = Path("scripts/experiments/theta/results")
+DEFAULT_TABLE_NAME = "threshold_sweep_combined.csv"
+DEFAULT_PLOT_NAME = "threshold_sweep_combined.png"
 PIL_FONT_REGULAR = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
 PIL_FONT_BOLD = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
+TABLE_FIELDS = [
+    "category",
+    "theta",
+    "success_rate",
+    "avg_kept_relations",
+    "avg_kept_relations_min_for_theta",
+    "avg_kept_relations_max_for_theta",
+    "overall_kept_ratio",
+    "overall_kept_ratio_min_for_theta",
+    "overall_kept_ratio_max_for_theta",
+    "avg_relations_per_object",
+    "avg_relations_per_object_min_for_theta",
+    "avg_relations_per_object_max_for_theta",
+    "avg_relations_per_keyword",
+    "avg_relations_per_keyword_min_for_theta",
+    "avg_relations_per_keyword_max_for_theta",
+    "ope_objects",
+    "ope_zero_relation_objects",
+    "ope_zero_relation_object_ratio",
+    "ope_zero_relation_object_names",
+    "urp_keywords",
+    "urp_zero_relation_keywords",
+    "urp_zero_relation_keyword_ratio",
+    "urp_zero_relation_keyword_names",
+    "zero_relation_queries",
+    "total_relation_queries",
+    "zero_relation_query_ratio",
+    "zero_relation_terms",
+    "relations_kept",
+    "relations_total",
+    "ope_relations_kept",
+    "ope_relations_total",
+    "urp_relations_kept",
+    "urp_relations_total",
+    "_source",
+]
 
 
 def _load_pil_font(size: int, bold: bool = False):
@@ -31,6 +70,124 @@ def _load_rows(results_dir: Path) -> list[dict]:
     if not rows:
         raise SystemExit(f"No theta sweep results found in {results_dir}")
     return rows
+
+
+def _to_float(row: dict, key: str, default: float = 0.0) -> float:
+    value = row.get(key, default)
+    if value in ("", None):
+        return default
+    return float(value)
+
+
+def _to_int(row: dict, key: str, default: int = 0) -> int:
+    value = row.get(key, default)
+    if value in ("", None):
+        return default
+    return int(float(value))
+
+
+def _normalize_rows(rows: list[dict]) -> list[dict]:
+    normalized = []
+    for row in rows:
+        new_row = dict(row)
+        new_row["theta"] = _to_float(new_row, "theta")
+        new_row["success_rate"] = _to_float(new_row, "success_rate")
+        new_row["avg_relations_per_object"] = _to_float(new_row, "avg_relations_per_object")
+        new_row["avg_relations_per_keyword"] = _to_float(new_row, "avg_relations_per_keyword")
+        new_row["relations_kept"] = _to_int(new_row, "relations_kept")
+        new_row["relations_total"] = _to_int(new_row, "relations_total")
+        new_row["ope_objects"] = _to_int(new_row, "ope_objects")
+        new_row["ope_zero_relation_objects"] = _to_int(new_row, "ope_zero_relation_objects")
+        new_row["ope_zero_relation_object_ratio"] = _to_float(new_row, "ope_zero_relation_object_ratio")
+        new_row["ope_zero_relation_object_names"] = new_row.get("ope_zero_relation_object_names", "")
+        new_row["ope_relations_kept"] = _to_int(new_row, "ope_relations_kept")
+        new_row["ope_relations_total"] = _to_int(new_row, "ope_relations_total")
+        new_row["urp_keywords"] = _to_int(new_row, "urp_keywords")
+        new_row["urp_zero_relation_keywords"] = _to_int(new_row, "urp_zero_relation_keywords")
+        new_row["urp_zero_relation_keyword_ratio"] = _to_float(new_row, "urp_zero_relation_keyword_ratio")
+        new_row["urp_zero_relation_keyword_names"] = new_row.get("urp_zero_relation_keyword_names", "")
+        new_row["urp_relations_kept"] = _to_int(new_row, "urp_relations_kept")
+        new_row["urp_relations_total"] = _to_int(new_row, "urp_relations_total")
+        new_row["zero_relation_queries"] = _to_int(new_row, "zero_relation_queries")
+        new_row["total_relation_queries"] = _to_int(new_row, "total_relation_queries")
+        new_row["zero_relation_query_ratio"] = _to_float(new_row, "zero_relation_query_ratio")
+        new_row["zero_relation_terms"] = new_row.get("zero_relation_terms", "")
+        if "avg_kept_relations" in new_row:
+            new_row["avg_kept_relations"] = _to_float(new_row, "avg_kept_relations")
+        if "overall_kept_ratio" in new_row:
+            new_row["overall_kept_ratio"] = _to_float(new_row, "overall_kept_ratio")
+        normalized.append(new_row)
+    return normalized
+
+
+def _avg_kept_relations(row: dict) -> float:
+    if "avg_kept_relations" in row:
+        return _to_float(row, "avg_kept_relations")
+    return _to_float(row, "avg_relations_per_object") + _to_float(row, "avg_relations_per_keyword")
+
+
+def _overall_kept_ratio(row: dict) -> float:
+    if "overall_kept_ratio" in row:
+        return _to_float(row, "overall_kept_ratio")
+    relations_total = _to_float(row, "relations_total")
+    if not relations_total:
+        return 0.0
+    return _to_float(row, "relations_kept") / relations_total
+
+
+def _load_table_rows(table_path: Path) -> list[dict]:
+    with open(table_path, newline="") as f:
+        rows = _normalize_rows(list(csv.DictReader(f)))
+    if not rows:
+        raise SystemExit(f"No rows found in {table_path}")
+    return rows
+
+
+def _range_columns_by_theta(rows: list[dict]) -> dict[float, dict[str, float]]:
+    values_by_theta: dict[float, dict[str, list[float]]] = {}
+    for row in rows:
+        theta = float(row["theta"])
+        values = values_by_theta.setdefault(
+            theta,
+            {
+                "avg_relations_per_object": [],
+                "avg_relations_per_keyword": [],
+                "avg_kept_relations": [],
+                "overall_kept_ratio": [],
+            },
+        )
+        values["avg_relations_per_object"].append(_to_float(row, "avg_relations_per_object"))
+        values["avg_relations_per_keyword"].append(_to_float(row, "avg_relations_per_keyword"))
+        values["avg_kept_relations"].append(_avg_kept_relations(row))
+        values["overall_kept_ratio"].append(_overall_kept_ratio(row))
+
+    ranges_by_theta = {}
+    for theta, values in values_by_theta.items():
+        ranges = {}
+        for metric, metric_values in values.items():
+            ranges[f"{metric}_min_for_theta"] = min(metric_values)
+            ranges[f"{metric}_max_for_theta"] = max(metric_values)
+        ranges_by_theta[theta] = ranges
+    return ranges_by_theta
+
+
+def _write_table(rows: list[dict], table_path: Path) -> None:
+    table_path.parent.mkdir(parents=True, exist_ok=True)
+    ranges_by_theta = _range_columns_by_theta(rows)
+    with open(table_path, "w", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=TABLE_FIELDS, extrasaction="ignore")
+        writer.writeheader()
+        for row in sorted(rows, key=lambda r: (r["category"], float(r["theta"]))):
+            theta_ranges = ranges_by_theta[float(row["theta"])]
+            writer.writerow(
+                {
+                    **row,
+                    "avg_kept_relations": _avg_kept_relations(row),
+                    "overall_kept_ratio": _overall_kept_ratio(row),
+                    **theta_ranges,
+                }
+            )
+    print(f"Saved table to {table_path}")
 
 
 def _draw_panel(
@@ -152,7 +309,7 @@ def _plot_with_pillow(rows: list[dict], out_path: Path, categories: list[str], t
             "points": [
                 (
                     row["theta"],
-                    (row["relations_kept"] / row["relations_total"]) if row["relations_total"] else 0.0,
+                    _overall_kept_ratio(row),
                 )
                 for row in by_category[category]
             ],
@@ -165,7 +322,7 @@ def _plot_with_pillow(rows: list[dict], out_path: Path, categories: list[str], t
             "points": [
                 (
                     row["theta"],
-                    row["avg_relations_per_object"] + row["avg_relations_per_keyword"],
+                    _avg_kept_relations(row),
                 )
                 for row in by_category[category]
             ],
@@ -235,23 +392,8 @@ def _plot_with_pillow(rows: list[dict], out_path: Path, categories: list[str], t
     print(f"Saved plot to {out_path}")
 
 
-def main() -> None:
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--results-dir",
-        default=str(DEFAULT_RESULTS_DIR),
-        help="Directory containing threshold_sweep_*.json files.",
-    )
-    parser.add_argument(
-        "--out",
-        default=None,
-        help="Output PNG path. Defaults to <results-dir>/threshold_sweep_combined.png",
-    )
-    args = parser.parse_args()
-
-    results_dir = Path(args.results_dir)
-    rows = _load_rows(results_dir)
-
+def _plot_combined(rows: list[dict], out_path: Path) -> None:
+    rows = _normalize_rows(rows)
     categories = sorted({row["category"] for row in rows})
     thetas = sorted({float(row["theta"]) for row in rows})
 
@@ -264,13 +406,12 @@ def main() -> None:
     try:
         import matplotlib.pyplot as plt
     except Exception:
-        out_path = Path(args.out) if args.out else results_dir / "threshold_sweep_combined.png"
         _plot_with_pillow(rows, out_path, categories, thetas)
         return
 
     avg_kept_max = max(
         [
-            row["avg_relations_per_object"] + row["avg_relations_per_keyword"]
+            _avg_kept_relations(row)
             for category in categories
             for row in by_category[category]
         ]
@@ -311,10 +452,7 @@ def main() -> None:
         category_rows = by_category[category]
         ax.plot(
             [row["theta"] for row in category_rows],
-            [
-                row["avg_relations_per_object"] + row["avg_relations_per_keyword"]
-                for row in category_rows
-            ],
+            [_avg_kept_relations(row) for row in category_rows],
             marker="o",
             linewidth=2.5,
             label=category.replace("_", " "),
@@ -333,10 +471,7 @@ def main() -> None:
         category_rows = by_category[category]
         ax.plot(
             [row["theta"] for row in category_rows],
-            [
-                row["relations_kept"] / row["relations_total"] if row["relations_total"] else 0.0
-                for row in category_rows
-            ],
+            [_overall_kept_ratio(row) for row in category_rows],
             marker="o",
             linewidth=2,
             label=category.replace("_", " "),
@@ -368,10 +503,52 @@ def main() -> None:
     fig.suptitle("Theta Sensitivity Across Evaluation Categories", fontsize=30, fontweight="bold", y=0.985)
     fig.subplots_adjust(left=0.13, right=0.98, top=0.93, bottom=0.17, hspace=0.42)
 
-    out_path = Path(args.out) if args.out else results_dir / "threshold_sweep_combined.png"
     out_path.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(out_path, dpi=220)
     print(f"Saved plot to {out_path}")
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--results-dir",
+        default=str(DEFAULT_RESULTS_DIR),
+        help="Directory containing threshold_sweep_*.json files.",
+    )
+    parser.add_argument(
+        "--table-in",
+        default=None,
+        help="Optional combined CSV to plot instead of reading threshold_sweep_*.json files.",
+    )
+    parser.add_argument(
+        "--table-out",
+        default=None,
+        help=f"Output CSV path. Defaults to <results-dir>/{DEFAULT_TABLE_NAME}.",
+    )
+    parser.add_argument(
+        "--no-table",
+        action="store_true",
+        help="Do not write the combined CSV table.",
+    )
+    parser.add_argument(
+        "--out",
+        default=None,
+        help=f"Output PNG path. Defaults to <results-dir>/{DEFAULT_PLOT_NAME}",
+    )
+    args = parser.parse_args()
+
+    results_dir = Path(args.results_dir)
+    if args.table_in:
+        rows = _load_table_rows(Path(args.table_in))
+    else:
+        rows = _normalize_rows(_load_rows(results_dir))
+
+    table_out = Path(args.table_out) if args.table_out else results_dir / DEFAULT_TABLE_NAME
+    if not args.no_table:
+        _write_table(rows, table_out)
+
+    out_path = Path(args.out) if args.out else results_dir / DEFAULT_PLOT_NAME
+    _plot_combined(rows, out_path)
 
 
 if __name__ == "__main__":

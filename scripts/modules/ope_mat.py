@@ -125,6 +125,9 @@ def OPE_mat(found_objects, rel_objects, theta=0.75, stats=None, llm_temperature=
                 stats["ope_relations_total"] = stats.get("ope_relations_total", 0) + total
                 stats["ope_relations_kept"] = stats.get("ope_relations_kept", 0) + len(filtered_relations)
                 stats["ope_objects"] = stats.get("ope_objects", 0) + 1
+                if not filtered_relations:
+                    stats["ope_zero_relation_objects"] = stats.get("ope_zero_relation_objects", 0) + 1
+                    stats.setdefault("ope_zero_relation_object_names", []).append(obj)
 
             if not filtered_relations:
                 print(f"No relevant relations found for '{obj}' after filtering.")

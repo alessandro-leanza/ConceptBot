@@ -62,6 +62,29 @@ Minimal example configuration inside `scripts/ConceptBot_Main.py`:
 
 The script uses a hard-coded `user_query` and a small set of `found_objects`. Modify these to test different scenarios.
 
+**Run Theta Experiments With Docker**
+The experiment Docker Compose file is `docker-compose.experiments.yml`; its service name is `conceptbot-exp`.
+
+List services:
+
+```bash
+docker compose -f docker-compose.experiments.yml config --services
+```
+
+Run the explicit-unambiguous theta sweep with one trial:
+
+```bash
+docker compose -f docker-compose.experiments.yml run --rm conceptbot-exp \
+  bash -lc 'PYTHONPATH=. python3 scripts/experiments/theta/threshold_sweep.py \
+    --categories explicit_unambiguous \
+    --num-trials 1 \
+    --out scripts/experiments/theta/results/threshold_sweep_explicit_unambiguous \
+    --save-policies \
+    --plot'
+```
+
+For `explicit_unambiguous`, the sweep uses standard `OPE`, standard `URP`, `use_OPE=True`, and the default direct planner.
+
 **Run the Simulation Notebook**
 Open `scripts/Simulation_Environment.ipynb` in Jupyter and follow the cells. It includes:
 - PyBullet environment setup with UR5e + Robotiq gripper
