@@ -7,7 +7,6 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from instructions.load_instructions import load_category, resolve_items
-from scripts.modules.semantic_cache import get_openai_client, log_openai_call
 
 
 def _parse_runs(results_txt: Path) -> List[Dict[str, Any]]:
@@ -98,6 +97,8 @@ def _judge_batch(
     batch_rows: List[Dict[str, Any]],
     model: str,
 ) -> Dict[str, Dict[str, Any]]:
+    from scripts.modules.semantic_cache import get_openai_client, log_openai_call
+
     system = (
         "You are a strict evaluator for robot task plans.\n"
         "You must compare predicted plans against gold policies.\n"

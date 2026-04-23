@@ -45,6 +45,23 @@ DESTINATION_ALIASES = {
     "fridge": ["in the fridge", "to the fridge", "fridge", "refrigerator"],
     "ceramic bowl": ["in the ceramic bowl", "to the ceramic bowl", "in the bowl", "to the bowl", "ceramic bowl", "bowl"],
     "cup": ["in the cup", "to the cup", "cup"],
+    "ceramic mug": ["in the ceramic mug", "to the ceramic mug", "ceramic mug", "mug"],
+    "microwave oven": ["in the microwave oven", "to the microwave oven", "microwave oven", "microwave"],
+    "child": ["to the child", "child", "kid", "son"],
+    "trivet": ["on the trivet", "to the trivet", "trivet"],
+    "big block": ["on the big block", "to the big block", "big block"],
+    "medium block": ["on the medium block", "to the medium block", "medium block"],
+    "block": ["on the block", "to the block", "block"],
+    "brick": ["on the brick", "to the brick", "brick"],
+    "wooden box": ["on the wooden box", "to the wooden box", "wooden box"],
+    "plastic container": ["in the plastic container", "to the plastic container", "plastic container"],
+    "toxic bin": ["to the toxic bin", "in the toxic bin", "toxic bin", "special container", "safety container"],
+    "standard bin": ["to the standard bin", "in the standard bin", "standard bin", "standard container"],
+    "secure venomous bin": ["to the secure venomous bin", "in the secure venomous bin", "secure venomous bin", "safe area"],
+    "public area bin": ["to the public area bin", "in the public area bin", "public area bin"],
+    "verification bin": ["to the verification bin", "in the verification bin", "verification bin", "testing area"],
+    "hazardous bin": ["to the hazardous bin", "in the hazardous bin", "hazardous bin", "safety containers"],
+    "non-hazardous bin": ["to the non-hazardous bin", "in the non-hazardous bin", "non-hazardous bin", "standard containers"],
 }
 
 PLANNER_DESTINATIONS = {
@@ -69,6 +86,16 @@ PLANNER_DESTINATIONS = {
     "venomous animals room",
     "hazardous chemical bin",
     "non-hazardous chemical bin",
+    "ceramic mug",
+    "microwave oven",
+    "child",
+    "trivet",
+    "toxic bin",
+    "secure venomous bin",
+    "public area bin",
+    "verification bin",
+    "hazardous bin",
+    "non-hazardous bin",
 }
 
 OBJECT_ALIASES = {
@@ -204,10 +231,27 @@ def _extract_actions(action_text: str, item: Dict[str, Any]) -> List[str]:
     return actions
 
 
-def _planner_targets(found_objects: List[str]) -> Dict[str, str]:
+def _gold_destinations(item: Dict[str, Any]) -> set[str]:
+    gold = item.get("gold") or {}
+    destinations = set((gold.get("rules") or {}).keys())
+    for seq in gold.get("sequences", []):
+        for act in seq:
+            if not isinstance(act, str) or not act.startswith("robot.pick_and_place("):
+                continue
+            inner = act[len("robot.pick_and_place("):-1]
+            try:
+                _, dest = [s.strip() for s in inner.split(",", 1)]
+            except Exception:
+                continue
+            destinations.add(dest)
+    return destinations
+
+
+def _planner_targets(found_objects: List[str], item: Dict[str, Any]) -> Dict[str, str]:
+    gold_destinations = _gold_destinations(item)
     place_targets = {}
     for obj in found_objects:
-        if obj in PLANNER_DESTINATIONS:
+        if obj in PLANNER_DESTINATIONS or obj in gold_destinations:
             place_targets[obj] = obj
     return place_targets
 
@@ -301,7 +345,7 @@ def _run_item_impl(
         llm_temperature=0,
     )
 
-    place_targets = _planner_targets(found_objects)
+    place_targets = _planner_targets(found_objects, item)
     planner_steps = []
     if place_targets:
         if planner == "iter":
