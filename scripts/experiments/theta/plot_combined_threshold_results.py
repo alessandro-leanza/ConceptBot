@@ -8,6 +8,7 @@ from pathlib import Path
 DEFAULT_RESULTS_DIR = Path("scripts/experiments/theta/results")
 DEFAULT_TABLE_NAME = "threshold_sweep_combined.csv"
 DEFAULT_PLOT_NAME = "threshold_sweep_combined.png"
+DEFAULT_SUPPLEMENTAL_PLOT_NAME = "threshold_sweep_combined_zero_relations.png"
 PIL_FONT_REGULAR = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
 PIL_FONT_BOLD = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
 TABLE_FIELDS = [
@@ -62,6 +63,8 @@ def _text_size(draw, text: str, font) -> tuple[int, int]:
 def _load_rows(results_dir: Path) -> list[dict]:
     rows: list[dict] = []
     for json_path in sorted(results_dir.glob("threshold_sweep_*.json")):
+        if ".pre_zero_terms." in json_path.name:
+            continue
         payload = json.loads(json_path.read_text())
         for row in payload.get("results", []):
             row = dict(row)
@@ -261,6 +264,39 @@ def _draw_vertical_text(img, text: str, x: int, y: int, font) -> None:
     img.alpha_composite(rotated, (x, y))
 
 
+def _panel_series(
+    rows: list[dict],
+    categories: list[str],
+    metric: str,
+    color_by_category: dict[str, str],
+) -> list[dict]:
+    by_category: dict[str, list[dict]] = {category: [] for category in categories}
+    for row in rows:
+        by_category[row["category"]].append(row)
+    for category_rows in by_category.values():
+        category_rows.sort(key=lambda r: float(r["theta"]))
+
+    return [
+        {
+            "color": color_by_category[category],
+            "points": [(row["theta"], _metric_value(row, metric)) for row in by_category[category]],
+        }
+        for category in categories
+    ]
+
+
+def _metric_value(row: dict, metric: str) -> float:
+    if metric == "success_rate":
+        return _to_float(row, "success_rate")
+    if metric == "avg_kept_relations":
+        return _avg_kept_relations(row)
+    if metric == "overall_kept_ratio":
+        return _overall_kept_ratio(row)
+    if metric == "zero_relation_queries":
+        return _to_float(row, "zero_relation_queries")
+    raise ValueError(f"Unsupported metric: {metric}")
+
+
 def _plot_with_pillow(rows: list[dict], out_path: Path, categories: list[str], thetas: list[float]) -> None:
     from PIL import Image, ImageDraw
 
@@ -273,11 +309,11 @@ def _plot_with_pillow(rows: list[dict], out_path: Path, categories: list[str], t
     img = Image.new("RGBA", (1380, 1480), "white")
     draw = ImageDraw.Draw(img)
     fonts = {
-        "title": _load_pil_font(40, bold=False),
-        "subplot_title": _load_pil_font(30, bold=False),
-        "axis_label": _load_pil_font(26, bold=False),
-        "tick": _load_pil_font(22, bold=False),
-        "legend": _load_pil_font(22, bold=False),
+        "title": _load_pil_font(34, bold=False),
+        "subplot_title": _load_pil_font(24, bold=False),
+        "axis_label": _load_pil_font(20, bold=False),
+        "tick": _load_pil_font(18, bold=False),
+        "legend": _load_pil_font(18, bold=False),
     }
 
     margin_left = 105
@@ -392,6 +428,66 @@ def _plot_with_pillow(rows: list[dict], out_path: Path, categories: list[str], t
     print(f"Saved plot to {out_path}")
 
 
+def _plot_with_pillow_zero_relations(rows: list[dict], out_path: Path, categories: list[str], thetas: list[float]) -> None:
+    from PIL import Image, ImageDraw
+
+    img = Image.new("RGBA", (1380, 1480), "white")
+    draw = ImageDraw.Draw(img)
+    fonts = {
+        "title": _load_pil_font(34, bold=False),
+        "subplot_title": _load_pil_font(24, bold=False),
+        "axis_label": _load_pil_font(20, bold=False),
+        "tick": _load_pil_font(18, bold=False),
+        "legend": _load_pil_font(18, bold=False),
+    }
+
+    margin_left = 105
+    margin_right = 40
+    margin_top = 110
+    margin_bottom = 155
+    row_gap = 95
+    panel_width = 1380 - margin_left - margin_right
+    panel_height = (1480 - margin_top - margin_bottom - 2 * row_gap) // 3
+    boxes = []
+    for idx in range(3):
+        top = margin_top + idx * (panel_height + row_gap)
+        boxes.append((margin_left, top, margin_left + panel_width, top + panel_height))
+
+    palette = ["#1565c0", "#2e7d32", "#ef6c00", "#6a1b9a", "#c62828", "#00838f"]
+    color_by_category = {category: palette[idx % len(palette)] for idx, category in enumerate(categories)}
+    avg_kept_series = _panel_series(rows, categories, "avg_kept_relations", color_by_category)
+    kept_series = _panel_series(rows, categories, "overall_kept_ratio", color_by_category)
+    zero_rel_series = _panel_series(rows, categories, "zero_relation_queries", color_by_category)
+
+    avg_kept_max = max([point[1] for spec in avg_kept_series for point in spec["points"]] + [1.0])
+    avg_kept_y_max = max(150.0, math.ceil(avg_kept_max / 25.0) * 25.0)
+    avg_kept_ticks = list(range(0, int(avg_kept_y_max) + 1, 25))
+    zero_rel_max = max([point[1] for spec in zero_rel_series for point in spec["points"]] + [1.0])
+    zero_rel_y_max = max(25.0, math.ceil(zero_rel_max / 25.0) * 25.0)
+    zero_rel_ticks = list(range(0, int(zero_rel_y_max) + 1, 25))
+
+    _draw_panel(draw, boxes[0], "Average Kept Relations (Objects + Keywords)", thetas, avg_kept_series, "# relations", fonts, y_min=0.0, y_max=avg_kept_y_max, y_ticks=avg_kept_ticks)
+    _draw_panel(draw, boxes[1], "Overall Kept Ratio", thetas, kept_series, "Overall kept/total", fonts, y_min=0.0, y_max=1.0, y_ticks=[0.0, 0.25, 0.5, 0.75, 1.0])
+    _draw_panel(draw, boxes[2], "Object + Keyword Queries With Zero Relations", thetas, zero_rel_series, "# zero relations", fonts, y_min=0.0, y_max=zero_rel_y_max, y_ticks=zero_rel_ticks)
+
+    for box, y_label in zip(boxes, ["# relations", "Overall kept/total", "# zero relations"]):
+        left, top, _, bottom = box
+        _draw_vertical_text(img, y_label, left - 95, int(top + (bottom - top) / 2 - 95), fonts["axis_label"])
+
+    draw.text((margin_left, 24), "Theta Sensitivity Without Success Rate", fill="black", font=fonts["title"])
+    legend_x = margin_left + 40
+    legend_y = 1420
+    for category in categories:
+        color = color_by_category[category]
+        draw.rectangle((legend_x, legend_y, legend_x + 18, legend_y + 12), fill=color)
+        draw.text((legend_x + 26, legend_y - 10), category.replace("_", " "), fill="black", font=fonts["legend"])
+        legend_x += 280
+
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    img.convert("RGB").save(out_path)
+    print(f"Saved plot to {out_path}")
+
+
 def _plot_combined(rows: list[dict], out_path: Path) -> None:
     rows = _normalize_rows(rows)
     categories = sorted({row["category"] for row in rows})
@@ -438,10 +534,10 @@ def _plot_combined(rows: list[dict], out_path: Path) -> None:
             linewidth=2,
             label=category.replace("_", " "),
         )
-    ax.set_ylabel("Success rate", fontsize=24, fontweight="bold", rotation=90, labelpad=18)
+    ax.set_ylabel("Success rate", fontsize=17, rotation=90, labelpad=16)
     ax.yaxis.set_label_coords(-0.045, 0.5)
-    ax.set_xlabel("Theta", fontsize=24, fontweight="bold")
-    ax.set_title("Task Success Rate", fontsize=28, fontweight="bold", pad=12)
+    ax.set_xlabel("Theta", fontsize=17)
+    ax.set_title("Task Success Rate", fontsize=20, pad=10)
     ax.set_ylim(0.0, 1.0)
     ax.set_yticks([0.0, 0.25, 0.5, 0.75, 1.0])
     ax.grid(True, axis="y", alpha=0.3)
@@ -457,10 +553,10 @@ def _plot_combined(rows: list[dict], out_path: Path) -> None:
             linewidth=2.5,
             label=category.replace("_", " "),
         )
-    ax.set_title("Average Kept Relations (Objects + Keywords)", fontsize=28, fontweight="bold", pad=12)
-    ax.set_ylabel("# relations", fontsize=24, fontweight="bold", rotation=90, labelpad=18)
+    ax.set_title("Average Kept Relations (Objects + Keywords)", fontsize=20, pad=10)
+    ax.set_ylabel("# relations", fontsize=17, rotation=90, labelpad=16)
     ax.yaxis.set_label_coords(-0.045, 0.5)
-    ax.set_xlabel("Theta", fontsize=24, fontweight="bold")
+    ax.set_xlabel("Theta", fontsize=17)
     ax.set_ylim(0.0, avg_kept_y_max)
     ax.set_yticks(avg_kept_ticks)
     ax.grid(True, axis="y", alpha=0.3)
@@ -476,9 +572,9 @@ def _plot_combined(rows: list[dict], out_path: Path) -> None:
             linewidth=2,
             label=category.replace("_", " "),
         )
-    ax.set_title("Overall Kept Ratio", fontsize=28, fontweight="bold", pad=12)
-    ax.set_xlabel("Theta", fontsize=24, fontweight="bold")
-    ax.set_ylabel("Overall kept/total", fontsize=24, fontweight="bold", rotation=90, labelpad=18)
+    ax.set_title("Overall Kept Ratio", fontsize=20, pad=10)
+    ax.set_xlabel("Theta", fontsize=17)
+    ax.set_ylabel("Overall kept/total", fontsize=17, rotation=90, labelpad=16)
     ax.yaxis.set_label_coords(-0.045, 0.5)
     ax.set_ylim(0.0, 1.0)
     ax.set_yticks([0.0, 0.25, 0.5, 0.75, 1.0])
@@ -487,7 +583,7 @@ def _plot_combined(rows: list[dict], out_path: Path) -> None:
 
     for ax in axes:
         ax.set_xticks(thetas)
-        ax.tick_params(axis="both", labelsize=21)
+        ax.tick_params(axis="both", labelsize=14)
 
     handles, labels = [], []
     for axis in axes:
@@ -496,11 +592,94 @@ def _plot_combined(rows: list[dict], out_path: Path) -> None:
             if label not in labels:
                 handles.append(handle)
                 labels.append(label)
-    legend = fig.legend(handles, labels, loc="lower center", ncol=3, frameon=False, bbox_to_anchor=(0.5, 0.005), fontsize=21)
-    for text in legend.get_texts():
-        text.set_fontweight("bold")
+    fig.legend(handles, labels, loc="lower center", ncol=3, frameon=False, bbox_to_anchor=(0.5, 0.005), fontsize=14)
 
-    fig.suptitle("Theta Sensitivity Across Evaluation Categories", fontsize=30, fontweight="bold", y=0.985)
+    fig.suptitle("Theta Sensitivity Across Evaluation Categories", fontsize=22, y=0.985)
+    fig.subplots_adjust(left=0.13, right=0.98, top=0.93, bottom=0.17, hspace=0.42)
+
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    fig.savefig(out_path, dpi=220)
+    print(f"Saved plot to {out_path}")
+
+
+def _plot_combined_zero_relations(rows: list[dict], out_path: Path) -> None:
+    rows = _normalize_rows(rows)
+    categories = sorted({row["category"] for row in rows})
+    thetas = sorted({float(row["theta"]) for row in rows})
+    by_category: dict[str, list[dict]] = {category: [] for category in categories}
+    for row in rows:
+        by_category[row["category"]].append(row)
+    for category_rows in by_category.values():
+        category_rows.sort(key=lambda r: float(r["theta"]))
+
+    try:
+        import matplotlib.pyplot as plt
+    except Exception:
+        _plot_with_pillow_zero_relations(rows, out_path, categories, thetas)
+        return
+
+    avg_kept_max = max([_avg_kept_relations(row) for category in categories for row in by_category[category]] + [1.0])
+    avg_kept_y_max = max(150.0, math.ceil(avg_kept_max / 25.0) * 25.0)
+    avg_kept_ticks = list(range(0, int(avg_kept_y_max) + 1, 25))
+    zero_rel_max = max([_to_float(row, "zero_relation_queries") for category in categories for row in by_category[category]] + [1.0])
+    zero_rel_y_max = max(25.0, math.ceil(zero_rel_max / 25.0) * 25.0)
+    zero_rel_ticks = list(range(0, int(zero_rel_y_max) + 1, 25))
+
+    fig, axes = plt.subplots(3, 1, figsize=(9.5, 12.8), sharex=True, gridspec_kw={"height_ratios": [1.45, 1.0, 1.0]})
+
+    ax = axes[0]
+    for category in categories:
+        category_rows = by_category[category]
+        ax.plot([row["theta"] for row in category_rows], [_avg_kept_relations(row) for row in category_rows], marker="o", linewidth=2.5, label=category.replace("_", " "))
+    ax.set_title("Average Kept Relations (Objects + Keywords)", fontsize=20, pad=10)
+    ax.set_ylabel("# relations", fontsize=17, rotation=90, labelpad=16)
+    ax.yaxis.set_label_coords(-0.045, 0.5)
+    ax.set_xlabel("Theta", fontsize=17)
+    ax.set_ylim(0.0, avg_kept_y_max)
+    ax.set_yticks(avg_kept_ticks)
+    ax.grid(True, axis="y", alpha=0.3)
+    ax.grid(True, axis="x", alpha=0.18)
+
+    ax = axes[1]
+    for category in categories:
+        category_rows = by_category[category]
+        ax.plot([row["theta"] for row in category_rows], [_overall_kept_ratio(row) for row in category_rows], marker="o", linewidth=2, label=category.replace("_", " "))
+    ax.set_title("Overall Kept Ratio", fontsize=20, pad=10)
+    ax.set_xlabel("Theta", fontsize=17)
+    ax.set_ylabel("Overall kept/total", fontsize=17, rotation=90, labelpad=16)
+    ax.yaxis.set_label_coords(-0.045, 0.5)
+    ax.set_ylim(0.0, 1.0)
+    ax.set_yticks([0.0, 0.25, 0.5, 0.75, 1.0])
+    ax.grid(True, axis="y", alpha=0.3)
+    ax.grid(True, axis="x", alpha=0.18)
+
+    ax = axes[2]
+    for category in categories:
+        category_rows = by_category[category]
+        ax.plot([row["theta"] for row in category_rows], [_to_float(row, "zero_relation_queries") for row in category_rows], marker="o", linewidth=2, label=category.replace("_", " "))
+    ax.set_title("Object + Keyword Queries With Zero Relations", fontsize=20, pad=10)
+    ax.set_xlabel("Theta", fontsize=17)
+    ax.set_ylabel("# zero relations", fontsize=17, rotation=90, labelpad=16)
+    ax.yaxis.set_label_coords(-0.045, 0.5)
+    ax.set_ylim(0.0, zero_rel_y_max)
+    ax.set_yticks(zero_rel_ticks)
+    ax.grid(True, axis="y", alpha=0.3)
+    ax.grid(True, axis="x", alpha=0.18)
+
+    for ax in axes:
+        ax.set_xticks(thetas)
+        ax.tick_params(axis="both", labelsize=14)
+
+    handles, labels = [], []
+    for axis in axes:
+        axis_handles, axis_labels = axis.get_legend_handles_labels()
+        for handle, label in zip(axis_handles, axis_labels):
+            if label not in labels:
+                handles.append(handle)
+                labels.append(label)
+    fig.legend(handles, labels, loc="lower center", ncol=3, frameon=False, bbox_to_anchor=(0.5, 0.005), fontsize=14)
+
+    fig.suptitle("Theta Sensitivity Without Success Rate", fontsize=22, y=0.985)
     fig.subplots_adjust(left=0.13, right=0.98, top=0.93, bottom=0.17, hspace=0.42)
 
     out_path.parent.mkdir(parents=True, exist_ok=True)
@@ -549,6 +728,7 @@ def main() -> None:
 
     out_path = Path(args.out) if args.out else results_dir / DEFAULT_PLOT_NAME
     _plot_combined(rows, out_path)
+    _plot_combined_zero_relations(rows, results_dir / DEFAULT_SUPPLEMENTAL_PLOT_NAME)
 
 
 if __name__ == "__main__":
