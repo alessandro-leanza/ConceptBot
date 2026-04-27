@@ -11,6 +11,7 @@ from scripts.modules.semantic_cache import (
     get_openai_client,
     log_openai_call,
 )
+from scripts.modules.dynamic_properties import merge_properties, normalize_property_name
 import numpy as np
 import re
 
@@ -81,8 +82,24 @@ def parse_gpt_response(response):
                 objects_info[current_obj][key] = value
     return objects_info
 
-def OPE(found_objects, rel_objects, theta=0.75, stats=None, llm_temperature=0):
-    properties = ['dangerous', 'fragile', 'deformable', "hold liquid", 'safe', 'stable', 'poisonous']
+def _format_property_label(property_name):
+    return " ".join(part.capitalize() for part in property_name.replace("-", " ").split())
+
+
+def OPE(
+    found_objects,
+    rel_objects,
+    theta=0.75,
+    stats=None,
+    llm_temperature=0,
+    dynamic_properties=None,
+    dynamic_property_metadata=None,
+):
+    base_properties = ['dangerous', 'fragile', 'deformable', "hold liquid", 'safe', 'stable', 'poisonous']
+    properties = base_properties
+    if dynamic_properties is not None:
+        properties = merge_properties(base_properties, dynamic_properties)
+        print("[OPE] Dynamic property induction enabled. Properties:", ", ".join(properties))
     property_embeddings = {}
 
     system_message = (
@@ -105,6 +122,27 @@ def OPE(found_objects, rel_objects, theta=0.75, stats=None, llm_temperature=0):
         "Poisonous: [Yes/No]\n"
     )
 
+    dynamic_only = properties[len(base_properties):]
+    if dynamic_only:
+        system_message += "\nAdditional task-relevant properties to determine (Yes/No):\n"
+        metadata_by_name = {}
+        if isinstance(dynamic_property_metadata, dict):
+            for item in dynamic_property_metadata.get("dynamic_properties", []):
+                if isinstance(item, dict) and item.get("name"):
+                    metadata_by_name[normalize_property_name(item["name"])] = item
+        elif isinstance(dynamic_property_metadata, list):
+            for item in dynamic_property_metadata:
+                if isinstance(item, dict) and item.get("name"):
+                    metadata_by_name[normalize_property_name(item["name"])] = item
+
+        for prop in dynamic_only:
+            description = metadata_by_name.get(prop, {}).get("description", "")
+            if description:
+                system_message += f"- {_format_property_label(prop)} (Yes/No): {description}\n"
+            else:
+                system_message += f"- {_format_property_label(prop)} (Yes/No)\n"
+        system_message += "For each object, include one output line for every additional task-relevant property above.\n"
+
     if use_kg:
         print("Computing embeddings for properties:")
         for obj in rel_objects:
@@ -114,7 +152,7 @@ def OPE(found_objects, rel_objects, theta=0.75, stats=None, llm_temperature=0):
                 query=obj,
                 relations=relations,
                 targets=properties,
-                kind="ope_standard",
+                kind="ope_standard_dynamic" if dynamic_properties is not None else "ope_standard",
             )
             total = len(relation_scores)
             filtered_relations = [(relation, similarity) for relation, similarity in relation_scores if similarity >= theta]
