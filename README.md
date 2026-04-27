@@ -1,6 +1,6 @@
 # ConceptBot
 
-ConceptBot is a modular LLM-based robot planning framework that grounds commonsense knowledge in a knowledge graph to resolve underspecified requests and produce feasible, risk-aware pick-and-place plans. The system is organized into three main modules (OPE, URP, Planner) plus an optional Risk Index for safety-critical tasks.
+ConceptBot is a modular LLM-based robot planning framework that grounds commonsense knowledge in a knowledge graph to resolve underspecified requests and produce feasible, risk-aware pick-and-place plans. The system is organized into three main modules (OPE, URP, Planner), with category-specific OPE/URP behavior configured through a central pipeline registry.
 
 This repository contains the core research code used to prototype the modules and run example pipelines, plus a simulation notebook for PyBullet experiments.
 
@@ -15,15 +15,26 @@ This repository contains the core research code used to prototype the modules an
 - Planner: selects the next action using LLM scoring and combines it with affordance scoring to ensure feasibility.
 - Risk Index: optional safety-focused OPE variant that scores object risk (1-5) and interaction risk with other objects.
 
+**Current Pipeline Architecture**
+- `scripts/modules/pipeline_config.py` defines `CATEGORY_PIPELINE`, the central mapping from instruction category to OPE mode, URP mode, target properties, prompt type, and cache labels.
+- `scripts/modules/ope.py` is the public OPE engine. It supports standard binary properties, toxicity-specific binary properties, material extraction, and risk-aware scoring. Older variant files remain available for compatibility/internal delegation.
+- `scripts/modules/urp.py` is the public URP engine. It supports standard, materials, toxicity, and risk-aware prompt modes.
+- The theta sweep uses this category mapping:
+  - `explicit_unambiguous`, `explicit_ambiguous`, `implicit`: standard OPE + standard URP.
+  - `toxicity`: toxicity-tuned OPE + toxicity URP.
+  - `materials`: materials OPE + materials URP.
+  - `risk_aware`: risk OPE + risk URP.
+
 **Repository Structure**
 - `scripts/ConceptBot_Main.py`: main entry point to run the pipeline by toggling modules.
 - `scripts/Simulation_Environment.ipynb`: PyBullet-based simulation and evaluation notebook.
-- `scripts/modules/ope.py`: OPE with binary properties.
-- `scripts/modules/ope_mat.py`: OPE for material classification.
+- `scripts/modules/pipeline_config.py`: category-specific OPE/URP modes, target properties, prompt types, and cache labels.
+- `scripts/modules/ope.py`: unified OPE engine for standard, toxicity, materials, and risk modes.
+- `scripts/modules/ope_mat.py`: legacy/compatibility OPE for material classification.
 - `scripts/modules/ope_score.py`: OPE with 1-3 property scores.
-- `scripts/modules/ope_score_par.py`: OPE Risk Index (1-5) and optional Wikipedia fallback.
-- `scripts/modules/urp.py`: URP with ConceptNet relations and few-shot examples.
-- `scripts/modules/urp_risk.py`: URP variant that uses Risk Index outputs.
+- `scripts/modules/ope_score_par.py`: legacy/internal OPE Risk Index (1-5) and optional Wikipedia fallback.
+- `scripts/modules/urp.py`: unified URP engine for standard, materials, toxicity, and risk modes.
+- `scripts/modules/urp_risk.py`: legacy/compatibility URP variant that uses Risk Index outputs.
 - `scripts/modules/pl_toplog.py`: Planner using top-logprob scoring + affordances.
 - `scripts/modules/pl_toplog_prop.py`: Planner with object properties injected.
 - `scripts/modules/pl_posneg.py`: Planner with positive/negative prompting and affordance terms.
@@ -83,7 +94,7 @@ docker compose -f docker-compose.experiments.yml run --rm conceptbot-exp \
     --plot'
 ```
 
-For `explicit_unambiguous`, the sweep uses standard `OPE`, standard `URP`, `use_OPE=True`, and the default direct planner.
+For `explicit_unambiguous`, the sweep uses standard OPE, standard URP, `use_OPE=True`, and the default direct planner. Category-specific OPE/URP combinations are selected through `CATEGORY_PIPELINE` in `scripts/modules/pipeline_config.py`.
 
 **Run the Simulation Notebook**
 Open `scripts/Simulation_Environment.ipynb` in Jupyter and follow the cells. It includes:
@@ -92,9 +103,9 @@ Open `scripts/Simulation_Environment.ipynb` in Jupyter and follow the cells. It 
 - LLM-based planning calls
 
 **Paper-to-Code Mapping**
-- OPE module: `scripts/modules/ope.py`, `scripts/modules/ope_score.py`, `scripts/modules/ope_mat.py`
-- Risk Index: `scripts/modules/ope_score_par.py` and `scripts/modules/urp_risk.py`
-- URP module: `scripts/modules/urp.py`
+- OPE module: `scripts/modules/ope.py` with category settings in `scripts/modules/pipeline_config.py`; legacy variants remain in `scripts/modules/ope_score.py`, `scripts/modules/ope_mat.py`, and `scripts/modules/ope_score_par.py`.
+- Risk Index: risk mode in `scripts/modules/ope.py` delegates to `scripts/modules/ope_score_par.py`; risk URP behavior is available through `scripts/modules/urp.py`.
+- URP module: `scripts/modules/urp.py` with standard/materials/toxicity/risk prompt modes.
 - Planner (LLM scoring + affordance): `scripts/modules/pl_toplog.py`, `scripts/modules/pl_toplog_prop.py`, `scripts/modules/pl_posneg.py`, `scripts/modules/pl_iter.py`
 - Object detection: `scripts/modules/kg_yolo.py` (real-world), notebook uses ViLD for simulation
 - Execution on robot: `scripts/modules/pick_and_place.py`

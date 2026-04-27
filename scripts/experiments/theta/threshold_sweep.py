@@ -17,14 +17,12 @@ except Exception:
     np = None
 
 from instructions.load_instructions import load_category, resolve_items
+from scripts.modules.pipeline_config import get_category_pipeline
 from scripts.modules.semantic_cache import flush_all_caches, get_openai_client, log_openai_call
 from scripts.modules.ope import OPE
-from scripts.modules.ope_mat import OPE_mat
-from scripts.modules.ope_score_par import OPE_score_par
 from scripts.modules.pl_direct import DIRECT
 from scripts.modules.pl_iter import ITER
 from scripts.modules.urp import URP
-from scripts.modules.urp_risk import URP_risk
 
 
 DEFAULT_THETAS = [0.65, 0.70, 0.75, 0.80, 0.85]
@@ -319,22 +317,21 @@ def _run_item_impl(
     found_objects = item["objects"]
     stats: Dict[str, Any] = {}
 
-    # Choose OPE/URP variant by category
-    if category == "materials":
-        objects_info = OPE_mat(found_objects, found_objects, theta=theta, stats=stats, llm_temperature=0)
-        urp_fn = URP
-        use_ope_in_urp = True
-    elif category == "risk_aware":
-        objects_info = OPE_score_par(found_objects, found_objects, item["instruction"], theta=theta, stats=stats, llm_temperature=0)
-        urp_fn = URP_risk
-        use_ope_in_urp = True
-    else:
-        objects_info = OPE(found_objects, found_objects, theta=theta, stats=stats, llm_temperature=0)
-        urp_fn = URP
-        use_ope_in_urp = True
+    pipeline = get_category_pipeline(category)
+    objects_info = OPE(
+        found_objects,
+        found_objects,
+        theta=theta,
+        stats=stats,
+        llm_temperature=0,
+        mode=pipeline["ope_mode"],
+        pipeline_config=pipeline,
+        user_request=item["instruction"],
+    )
+    use_ope_in_urp = True
 
     # URP to get a structured high-level query for the planner
-    urp_action = urp_fn(
+    urp_action = URP(
         item["instruction"],
         found_objects,
         objects_info,
@@ -343,6 +340,8 @@ def _run_item_impl(
         theta=theta,
         stats=stats,
         llm_temperature=0,
+        mode=pipeline["urp_mode"],
+        pipeline_config=pipeline,
     )
 
     place_targets = _planner_targets(found_objects, item)

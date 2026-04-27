@@ -13,6 +13,7 @@ from scripts.modules.semantic_cache import (
     get_cached_urp_request_similarities,
     log_openai_call,
 )
+from scripts.modules.pipeline_config import get_mode_pipeline
 import numpy as np
 
 
@@ -105,45 +106,21 @@ def list_to_string(found_obj):
     result_string = ', '.join(found_obj)
     return result_string
 
-def URP(user_message, found_objects, objects_info, use_OPE, rel_objects, theta=0.75, stats=None, llm_temperature=0):
-    string_found_objects = list_to_string(found_objects)
 
-    if use_OPE:
-        obj_info_str = str(objects_info)
-        system_env = "\nOBJECTS in the scene and risk-evaluations (Carefully analyzes these properties):\n " + obj_info_str + "\n The risk score ranges from 1 to 5, the higher the score the greater the risk. Instead, within DangerousWith[] is told how dangerous the interaction with other elements is"
-    else:
-        system_env = "\nOBJECTS in the scene: " + string_found_objects
-
-    system_goal = ""
-    system_examples = " "
-
-    if use_OPE:
-        system_goal = """
-        "You are an expert on the Franka Emika Panda robot. Your goal is to rework the user's high-level request into a request that the robot can understand and fulfill. "
-        "Consider that the robot can ONLY perform pick and place operations."
-        "Consider the most stable and safe solution. "
-        "If the user requests an item, and you are in doubt between several items, bring back the items that seem most correct to you but specify very clearly that only one (or two or the exact number as the case may be) is needed anyway. "
-        "Try to understand what the user's needs are and what you can do to meet them. Try to understand what the user is giving relevance to.\n\n"
-        
-        "IMPORTANT: You are provided with a set of objects and their associated properties. Use this information carefully to ensure both SAFETY and the SUCCESSFUL execution of the task:\n"
-        
-        "Provide your response in two sections. First, provide a 'Reasoning:' section where you explain your thought process for solving the request, using the properties of the objects that have been given to you previously and explaining why one item is better than another to meet the demand. Second, provide an 'Answer:' section where you give the robot instructions to execute the task."
-        """
-    else:
-        system_goal = """
-        "You are an expert on the Franka Emika Panda robot. Your goal is to rework the user's high-level request into a request that the robot can understand and fulfill. "
-        "Consider that the robot can ONLY perform pick and place operations."
-        "Consider the most stable and SAFE solution to not damage the elements and the user, even if it means considering alternative objects to the request. "
-        "If the user asks for something, consider the 'user' position to give something to the user. For complex requests, try to break down the solution into smaller tasks. "
-        "If the user requests an item, and you are in doubt between several items, bring back the items that seem most correct to you but specify very clearly that only one (or two or the exact number as the case may be) is needed anyway. "
-        "Try to understand what the user's needs are and what you can do to meet them. Try to understand what the user is giving relevance to.\n\n"
-
-        "Provide your response in two sections. First, provide a 'Reasoning:' section where you explain your thought process for solving the request, explaining why one item is better than another to meet the demand. Second, provide an 'Answer:' section where you give the robot instructions to execute the task."
-        """
+def _resolve_pipeline(mode, pipeline_config):
+    if pipeline_config is not None:
+        return dict(pipeline_config)
+    return get_mode_pipeline(mode)
 
 
-    if use_example:
-        system_examples ="""
+def _cache_kind(prefix, suffix):
+    return f"{prefix}_{suffix}" if prefix != "urp" else f"urp_{suffix}"
+
+
+def _standard_examples():
+    if not use_example:
+        return " "
+    return """
             EXAMPLES:
             ########
             Input: 'I want' / 'Bring me' an apple.
@@ -166,7 +143,121 @@ def URP(user_message, found_objects, objects_info, use_OPE, rel_objects, theta=0
             Output: Pick the conductive items and place them in a safe, non-conductive area to prevent electrical hazards.
             ########
             """
+
+
+def _build_system_env(mode, found_objects, objects_info, use_OPE):
+    string_found_objects = list_to_string(found_objects)
+
+    if not use_OPE:
+        return "\nOBJECTS in the scene: " + string_found_objects
+
+    obj_info_str = str(objects_info)
+    if mode == "risk":
+        return (
+            "\nOBJECTS in the scene and risk-evaluations (Carefully analyze these properties):\n "
+            + obj_info_str
+            + "\nThe risk score ranges from 1 to 5, the higher the score the greater the risk. "
+            + "DangerousWith[] describes how dangerous the interaction with other elements is."
+        )
+    if mode == "materials":
+        return "\nOBJECTS in the scene and extracted material information:\n " + obj_info_str
+    if mode == "toxicity":
+        return "\nOBJECTS in the scene and extracted toxicity-related properties:\n " + obj_info_str
+    return "\nOBJECTS in the scene and extracted properties:\n " + obj_info_str + "\nProperty values are usually Yes/No unless otherwise specified."
+
+
+def _build_system_goal(mode, use_OPE):
+    if mode == "materials":
+        return """
+        "You are an expert on the Franka Emika Panda robot. Your goal is to rewrite the user's material-sorting request into robot-executable pick-and-place instructions. "
+        "The robot can ONLY perform pick and place operations. "
+        "You are given objects in the scene and their extracted material information. Use the material information to decide which objects belong in each destination bin. "
+        "Place each object into the bin matching its material category when a matching bin exists. If an object is made of multiple materials, use the mixed bin when available. If the material is uncertain, use the mixed bin when available. "
+        "Do not invent objects or destinations. Do not ask the robot to inspect, cut, wash, or otherwise manipulate objects beyond pick-and-place.\n\n"
+        "Provide your response in two sections. First, provide a 'Reasoning:' section where you briefly explain which objects match which materials. Second, provide an 'Answer:' section where you give concise robot instructions."
+        """
+    if mode == "toxicity":
+        return """
+        "You are an expert on the Franka Emika Panda robot. Your goal is to rewrite the user's toxicity-sorting request into robot-executable pick-and-place instructions. "
+        "The robot can ONLY perform pick and place operations. "
+        "You are given objects in the scene and their extracted toxicity-related properties, such as poisonous, toxic, venomous, hazardous, safe, or non-toxic. "
+        "Place toxic, poisonous, venomous, or hazardous objects in the designated toxic, hazardous, venomous, safety, or verification container requested by the user. Place clearly non-toxic or safe objects in the standard, public, or non-hazardous container. "
+        "If the instruction provides a mixed, verification, or testing container and toxicity is uncertain, use that container. Be conservative with safety-critical objects. Do not invent objects or destinations.\n\n"
+        "Provide your response in two sections. First, provide a 'Reasoning:' section where you briefly explain which objects are toxic or non-toxic. Second, provide an 'Answer:' section where you give concise robot instructions."
+        """
+    if mode == "risk":
+        if use_OPE:
+            return """
+        "You are an expert on the Franka Emika Panda robot. Your goal is to rework the user's high-level request into a request that the robot can understand and fulfill. "
+        "Consider that the robot can ONLY perform pick and place operations. "
+        "If the user requests an item, and you are in doubt between several items, bring back the items that seem most correct to you but specify very clearly that only one (or two or the exact number as the case may be) is needed anyway. "
+        "Try to understand what the user's needs are and what you can do to meet them. Try to understand what the user is giving relevance to.\n\n"
+        "IMPORTANT: You are provided with a set of objects and their associated risk evaluations. Use this information carefully to ensure both SAFETY and the SUCCESSFUL execution of the task:\n"
+        "- Each object has a 'Dangerous' score ranging from 1 to 5:\n"
+        "  - 1: The object is completely safe under all circumstances.\n"
+        "  - 2: The object poses minimal risk but could be slightly harmful or damaged in rare cases.\n"
+        "  - 3: The object can cause harm or become damaged if mishandled or used improperly in some scenarios.\n"
+        "  - 4: The object poses significant risk or fragility, even in normal conditions.\n"
+        "  - 5: The object is extremely dangerous or fragile, posing a severe risk in almost all scenarios.\n\n"
+        "- Objects may also have a 'DangerousWith' list, which identifies specific objects in the scene that increase the danger level of the analyzed object when combined. The list includes the interacting object name and an interaction danger score (1 to 5):\n"
+        "  - 1: The combination is completely safe.\n"
+        "  - 2: The combination presents minimal additional risk.\n"
+        "  - 3: The combination could result in harm or damage.\n"
+        "  - 4: The combination poses a significant additional risk.\n"
+        "  - 5: The combination is highly unsafe and must be avoided.\n\n"
+        "USAGE GUIDELINES:\n"
+        "- Avoid using objects with high 'DangerousWith' interaction scores ( (4) or (5) ), to consider the others items with lower interaction risk, unless absolutely necessary. Consider the 'DangerousWith' list when multiple objects are involved: the important thing is to meet the user's true need, even with alternative objects.\n"
+        "Provide your response in two sections. First, provide a 'Reasoning:' section where you explain your thought process for solving the request, using the properties of the objects that have been given to you previously and explaining why one item is better than another to meet the demand. Second, provide an 'Answer:' section where you give the robot instructions to execute the task."
+        """
+        return """
+        "You are an expert on the Franka Emika Panda robot. Your goal is to rework the user's high-level request into a request that the robot can understand and fulfill. "
+        "Consider that the robot can ONLY perform pick and place operations. "
+        "If the user asks for something, consider the 'user' position to give something to the user. For complex requests, try to break down the solution into smaller tasks.\n\n"
+        "Provide your response in two sections. First, provide a 'Reasoning:' section where you explain your thought process for solving the request, explaining why one item is better than another to meet the demand. Second, provide an 'Answer:' section where you give the robot instructions to execute the task."
+        """
+    if use_OPE:
+        return """
+        "You are an expert on the Franka Emika Panda robot. Your goal is to rework the user's high-level request into a request that the robot can understand and fulfill. "
+        "Consider that the robot can ONLY perform pick and place operations."
+        "Consider the most stable and safe solution. "
+        "If the user requests an item, and you are in doubt between several items, bring back the items that seem most correct to you but specify very clearly that only one (or two or the exact number as the case may be) is needed anyway. "
+        "Try to understand what the user's needs are and what you can do to meet them. Try to understand what the user is giving relevance to.\n\n"
         
+        "IMPORTANT: You are provided with a set of objects and their associated properties. Use this information carefully to ensure both SAFETY and the SUCCESSFUL execution of the task:\n"
+        
+        "Provide your response in two sections. First, provide a 'Reasoning:' section where you explain your thought process for solving the request, using the properties of the objects that have been given to you previously and explaining why one item is better than another to meet the demand. Second, provide an 'Answer:' section where you give the robot instructions to execute the task."
+        """
+    return """
+        "You are an expert on the Franka Emika Panda robot. Your goal is to rework the user's high-level request into a request that the robot can understand and fulfill. "
+        "Consider that the robot can ONLY perform pick and place operations."
+        "Consider the most stable and SAFE solution to not damage the elements and the user, even if it means considering alternative objects to the request. "
+        "If the user asks for something, consider the 'user' position to give something to the user. For complex requests, try to break down the solution into smaller tasks. "
+        "If the user requests an item, and you are in doubt between several items, bring back the items that seem most correct to you but specify very clearly that only one (or two or the exact number as the case may be) is needed anyway. "
+        "Try to understand what the user's needs are and what you can do to meet them. Try to understand what the user is giving relevance to.\n\n"
+
+        "Provide your response in two sections. First, provide a 'Reasoning:' section where you explain your thought process for solving the request, explaining why one item is better than another to meet the demand. Second, provide an 'Answer:' section where you give the robot instructions to execute the task."
+        """
+
+
+def URP(
+    user_message,
+    found_objects,
+    objects_info,
+    use_OPE,
+    rel_objects,
+    theta=0.75,
+    stats=None,
+    llm_temperature=0,
+    mode="standard",
+    pipeline_config=None,
+):
+    pipeline_config = _resolve_pipeline(mode, pipeline_config)
+    mode = pipeline_config.get("urp_mode", mode)
+    cache_prefix = pipeline_config.get("urp_cache_prefix", "urp")
+
+    system_goal = _build_system_goal(mode, use_OPE)
+    system_examples = _standard_examples()
+    system_env = _build_system_env(mode, found_objects, objects_info, use_OPE)
     system_message = system_goal + system_examples + system_env
 
     if use_KG_query_request:
@@ -178,7 +269,7 @@ def URP(user_message, found_objects, objects_info, use_OPE, rel_objects, theta=0
                 instruction=user_message,
                 query=keyword,
                 relations=relations,
-                kind="urp_keyword_to_request",
+                kind=_cache_kind(cache_prefix, "keyword_to_request"),
             )
             total = len(relation_scores)
             filtered_relations_kw = [(relation, similarity) for relation, similarity in relation_scores if similarity >= theta]
@@ -208,7 +299,7 @@ def URP(user_message, found_objects, objects_info, use_OPE, rel_objects, theta=0
                 query=obj,
                 relations=rel_obj,
                 keywords=keywords,
-                kind="urp_object_to_keywords",
+                kind=_cache_kind(cache_prefix, "object_to_keywords"),
             )
             conceptnet_relations_obj.extend([(relation, similarity) for relation, similarity in relation_scores if similarity >= theta])
             if stats is not None:
@@ -232,7 +323,7 @@ def URP(user_message, found_objects, objects_info, use_OPE, rel_objects, theta=0
                 instruction=user_message,
                 query=keyword,
                 relations=rel_key,
-                kind="urp_keyword_relations_to_request",
+                kind=_cache_kind(cache_prefix, "keyword_relations_to_request"),
             )
             conceptnet_relations_key.extend([(relation, similarity) for relation, similarity in relation_scores if similarity >= theta])
 
@@ -257,7 +348,7 @@ def URP(user_message, found_objects, objects_info, use_OPE, rel_objects, theta=0
             ],
             temperature=llm_temperature
         )
-        log_openai_call("urp", user_message, time.monotonic() - start)
+        log_openai_call(cache_prefix, user_message, time.monotonic() - start)
         response_message = response.choices[0].message.content
 
         print('\nResponse Message:')

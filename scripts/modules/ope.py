@@ -12,6 +12,7 @@ from scripts.modules.semantic_cache import (
     log_openai_call,
 )
 from scripts.modules.dynamic_properties import merge_properties, normalize_property_name
+from scripts.modules.pipeline_config import get_mode_pipeline
 import numpy as np
 import re
 
@@ -86,63 +87,85 @@ def _format_property_label(property_name):
     return " ".join(part.capitalize() for part in property_name.replace("-", " ").split())
 
 
-def OPE(
-    found_objects,
-    rel_objects,
-    theta=0.75,
-    stats=None,
-    llm_temperature=0,
-    dynamic_properties=None,
-    dynamic_property_metadata=None,
-):
-    base_properties = ['dangerous', 'fragile', 'deformable', "hold liquid", 'safe', 'stable', 'poisonous']
-    properties = base_properties
-    if dynamic_properties is not None:
-        properties = merge_properties(base_properties, dynamic_properties)
-        print("[OPE] Dynamic property induction enabled. Properties:", ", ".join(properties))
-    property_embeddings = {}
+def _resolve_pipeline(mode, pipeline_config):
+    if pipeline_config is not None:
+        return dict(pipeline_config)
+    return get_mode_pipeline(mode)
 
+
+def _metadata_by_name(dynamic_property_metadata):
+    metadata = {}
+    if isinstance(dynamic_property_metadata, dict):
+        items = dynamic_property_metadata.get("dynamic_properties", [])
+    elif isinstance(dynamic_property_metadata, list):
+        items = dynamic_property_metadata
+    else:
+        items = []
+    for item in items:
+        if isinstance(item, dict) and item.get("name"):
+            metadata[normalize_property_name(item["name"])] = item
+    return metadata
+
+
+def _append_dynamic_property_prompt(system_message, base_properties, properties, dynamic_property_metadata):
+    dynamic_only = properties[len(base_properties):]
+    if not dynamic_only:
+        return system_message
+
+    system_message += "\nAdditional task-relevant properties to determine (Yes/No):\n"
+    metadata = _metadata_by_name(dynamic_property_metadata)
+    for prop in dynamic_only:
+        description = metadata.get(prop, {}).get("description", "")
+        if description:
+            system_message += f"- {_format_property_label(prop)} (Yes/No): {description}\n"
+        else:
+            system_message += f"- {_format_property_label(prop)} (Yes/No)\n"
+    system_message += "For each object, include one output line for every additional task-relevant property above.\n"
+    return system_message
+
+
+def _build_standard_binary_prompt(properties):
+    system_message = "You are an expert in object properties. For each object, analyze the provided relationships to determine the following properties:\n"
+    for prop in properties:
+        system_message += f"- {_format_property_label(prop)} (Yes/No)\n"
+    system_message += "Provide the properties in the following format without adding comments:\n"
+    system_message += "Object: [object_name]\n"
+    for prop in properties:
+        system_message += f"{_format_property_label(prop)}: [Yes/No]\n"
+    return system_message
+
+
+def _build_toxicity_prompt(properties):
     system_message = (
-        "You are an expert in object properties. For each object, analyze the provided relationships to determine the following properties:\n"
-        "- Dangerous (Yes/No)\n"
-        "- Fragile (Yes/No)\n"
-        "- Deformable (Yes/No)\n"
-        "- Hold Liquid (Yes/No)\n"
-        "- Safe (Yes/No)\n"
-        "- Stable (Yes/No)\n"
-        "- Poisonous (Yes/No)\n"
-        "Provide the properties in the following format without adding comments:\n"
+        "You are an expert in object properties and toxicity. For each object, analyze the provided relationships "
+        "to determine whether it is toxic, poisonous, venomous, hazardous, safe, or dangerous.\n"
+        "Use 'Yes' only when the object is clearly associated with the property. If evidence is missing or uncertain, "
+        "answer 'No' unless the object name itself strongly implies toxicity.\n"
+        "Determine the following properties:\n"
+    )
+    for prop in properties:
+        system_message += f"- {_format_property_label(prop)} (Yes/No)\n"
+    system_message += "Provide the properties in the following format without adding comments:\n"
+    system_message += "Object: [object_name]\n"
+    for prop in properties:
+        system_message += f"{_format_property_label(prop)}: [Yes/No]\n"
+    return system_message
+
+
+def _build_materials_prompt(materials):
+    material_list = ", ".join(materials)
+    return (
+        "You are an expert in object materials and recycling categories. For each object, analyze the provided "
+        "relationships to determine which material category or categories apply.\n"
+        f"Allowed material categories: {material_list}.\n"
+        "Use 'mixed material' when the object is commonly made of more than one material or when the material is uncertain.\n"
+        "Provide the materials in the following format without adding comments:\n"
         "Object: [object_name]\n"
-        "Dangerous: [Yes/No]\n"
-        "Fragile: [Yes/No]\n"
-        "Hold Liquid: [Yes/No]\n"
-        "Deformable: [Yes/No]\n"
-        "Safe: [Yes/No]\n"
-        "Stable: [Yes/No]\n"
-        "Poisonous: [Yes/No]\n"
+        "Materials: [comma-separated list of material categories]\n"
     )
 
-    dynamic_only = properties[len(base_properties):]
-    if dynamic_only:
-        system_message += "\nAdditional task-relevant properties to determine (Yes/No):\n"
-        metadata_by_name = {}
-        if isinstance(dynamic_property_metadata, dict):
-            for item in dynamic_property_metadata.get("dynamic_properties", []):
-                if isinstance(item, dict) and item.get("name"):
-                    metadata_by_name[normalize_property_name(item["name"])] = item
-        elif isinstance(dynamic_property_metadata, list):
-            for item in dynamic_property_metadata:
-                if isinstance(item, dict) and item.get("name"):
-                    metadata_by_name[normalize_property_name(item["name"])] = item
 
-        for prop in dynamic_only:
-            description = metadata_by_name.get(prop, {}).get("description", "")
-            if description:
-                system_message += f"- {_format_property_label(prop)} (Yes/No): {description}\n"
-            else:
-                system_message += f"- {_format_property_label(prop)} (Yes/No)\n"
-        system_message += "For each object, include one output line for every additional task-relevant property above.\n"
-
+def _run_ope_prompt(found_objects, rel_objects, properties, system_message, theta, stats, llm_temperature, cache_kind, log_kind):
     if use_kg:
         print("Computing embeddings for properties:")
         for obj in rel_objects:
@@ -152,7 +175,7 @@ def OPE(
                 query=obj,
                 relations=relations,
                 targets=properties,
-                kind="ope_standard_dynamic" if dynamic_properties is not None else "ope_standard",
+                kind=cache_kind,
             )
             total = len(relation_scores)
             filtered_relations = [(relation, similarity) for relation, similarity in relation_scores if similarity >= theta]
@@ -192,14 +215,102 @@ def OPE(
         ],
         temperature=llm_temperature
     )
-    log_openai_call("ope", user_message, time.monotonic() - start)
+    log_openai_call(log_kind, user_message, time.monotonic() - start)
 
     response_message = request.choices[0].message
     content = response_message.content
     print("\nGPT-4o-mini Response:")
     print(content)
-    objects_info = parse_gpt_response(content)
-    return objects_info
+    return parse_gpt_response(content)
+
+
+def _ope_standard_binary(
+    found_objects,
+    rel_objects,
+    theta,
+    stats,
+    llm_temperature,
+    dynamic_properties,
+    dynamic_property_metadata,
+    pipeline_config,
+):
+    base_properties = list(pipeline_config["ope_properties"])
+    properties = base_properties
+    cache_kind = pipeline_config.get("ope_cache_kind", "ope_standard")
+    if dynamic_properties is not None:
+        properties = merge_properties(base_properties, dynamic_properties)
+        cache_kind = f"{cache_kind}_dynamic"
+        print("[OPE] Dynamic property induction enabled. Properties:", ", ".join(properties))
+
+    if pipeline_config.get("ope_prompt_type") == "toxicity_binary":
+        system_message = _build_toxicity_prompt(properties)
+    else:
+        system_message = _build_standard_binary_prompt(base_properties)
+        system_message = _append_dynamic_property_prompt(system_message, base_properties, properties, dynamic_property_metadata)
+
+    return _run_ope_prompt(
+        found_objects,
+        rel_objects,
+        properties,
+        system_message,
+        theta,
+        stats,
+        llm_temperature,
+        cache_kind,
+        "ope_toxicity" if pipeline_config.get("ope_prompt_type") == "toxicity_binary" else "ope",
+    )
+
+
+def _ope_materials(found_objects, rel_objects, theta, stats, llm_temperature, pipeline_config):
+    materials = list(pipeline_config["ope_properties"])
+    print("Computing embeddings for materials...")
+    system_message = _build_materials_prompt(materials)
+    return _run_ope_prompt(
+        found_objects,
+        rel_objects,
+        materials,
+        system_message,
+        theta,
+        stats,
+        llm_temperature,
+        pipeline_config.get("ope_cache_kind", "ope_materials"),
+        "ope_materials",
+    )
+
+
+def OPE(
+    found_objects,
+    rel_objects,
+    theta=0.75,
+    stats=None,
+    llm_temperature=0,
+    dynamic_properties=None,
+    dynamic_property_metadata=None,
+    mode="standard",
+    pipeline_config=None,
+    user_request=None,
+):
+    pipeline_config = _resolve_pipeline(mode, pipeline_config)
+    mode = pipeline_config.get("ope_mode", mode)
+
+    if mode == "risk":
+        from scripts.modules.ope_score_par import OPE_score_par
+
+        return OPE_score_par(found_objects, rel_objects, user_request or "", theta=theta, stats=stats, llm_temperature=llm_temperature)
+    if mode == "materials":
+        return _ope_materials(found_objects, rel_objects, theta, stats, llm_temperature, pipeline_config)
+    if mode in {"standard", "toxicity"}:
+        return _ope_standard_binary(
+            found_objects,
+            rel_objects,
+            theta,
+            stats,
+            llm_temperature,
+            dynamic_properties,
+            dynamic_property_metadata,
+            pipeline_config,
+        )
+    raise ValueError(f"Unsupported OPE mode: {mode}")
 
 def process_object_names(found_objects):
     return [obj.strip().capitalize() for obj in found_objects]
