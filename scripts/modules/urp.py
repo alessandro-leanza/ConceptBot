@@ -145,6 +145,30 @@ def _standard_examples():
             """
 
 
+def _implicit_examples():
+    if not use_example:
+        return " "
+    return """
+            IMPLICIT REQUEST EXAMPLES:
+            ########
+            Input: The user states a need, such as being thirsty, hungry, tired, or wanting to host people.
+            Output: Infer the useful object categories needed to satisfy that need, then choose suitable objects available in the scene.
+            ########
+            Input: The user describes a problem, such as a spill, dirty object, or messy surface.
+            Output: Bring the appropriate tool or object that helps solve the problem, rather than moving the problematic object itself.
+            ########
+            Input: The user asks for everything in a category.
+            Output: Select all available objects that match that category, not just one representative.
+            ########
+            Input: The user asks to prepare, make, or serve something.
+            Output: Gather all necessary available ingredients or serving items implied by that request.
+            ########
+            Input: The user asks to refresh, refrigerate, preserve, or store items.
+            Output: Put all available perishable items in the refrigerator if a refrigerator is available.
+            ########
+            """
+
+
 def _build_system_env(mode, found_objects, objects_info, use_OPE):
     string_found_objects = list_to_string(found_objects)
 
@@ -190,7 +214,7 @@ def _build_system_goal(mode, use_OPE):
             return """
         "You are an expert on the Franka Emika Panda robot. Your goal is to rework the user's high-level request into a request that the robot can understand and fulfill. "
         "Consider that the robot can ONLY perform pick and place operations. "
-        "If the user requests an item, and you are in doubt between several items, bring back the items that seem most correct to you but specify very clearly that only one (or two or the exact number as the case may be) is needed anyway. "
+        "If the user requests a single item by category, choose exactly one best matching object unless the user explicitly asks for all, every, or multiple objects. "
         "Try to understand what the user's needs are and what you can do to meet them. Try to understand what the user is giving relevance to.\n\n"
         "IMPORTANT: You are provided with a set of objects and their associated risk evaluations. Use this information carefully to ensure both SAFETY and the SUCCESSFUL execution of the task:\n"
         "- Each object has a 'Dangerous' score ranging from 1 to 5:\n"
@@ -215,6 +239,22 @@ def _build_system_goal(mode, use_OPE):
         "If the user asks for something, consider the 'user' position to give something to the user. For complex requests, try to break down the solution into smaller tasks.\n\n"
         "Provide your response in two sections. First, provide a 'Reasoning:' section where you explain your thought process for solving the request, explaining why one item is better than another to meet the demand. Second, provide an 'Answer:' section where you give the robot instructions to execute the task."
         """
+    if mode in ("standard", "implicit"):
+        return """
+        "You are an expert on the Franka Emika Panda robot. Rewrite the user's request into robot-executable pick-and-place instructions. "
+        "The robot can ONLY perform pick-and-place actions with the objects and destinations available in the scene. "
+        "Use the extracted object properties and ConceptNet relations as evidence, but do not invent objects, destinations, or capabilities.\n\n"
+
+        "GENERAL RULES:\n"
+        "1. Preserve all explicit objects, actions, constraints, and destinations in the user request.\n"
+        "2. If the request is implicit, infer the practical need and choose available objects that satisfy that need.\n"
+        "3. For singular requests choose one best matching object; for all, every, or everything requests choose all matching available objects.\n"
+        "4. If a delivery request has no destination, use the user as destination; otherwise use only destinations present in the scene or clearly implied by the request.\n"
+        "5. Combine object names, ConceptNet relations, and extracted properties; when relations are missing, use object properties conservatively rather than ignoring the object.\n"
+        "6. Prefer safe, stable, and task-suitable objects; avoid dangerous, poisonous, or unsuitable objects unless the user explicitly requests them.\n\n"
+
+        "Provide your response in two sections: 'Reasoning:' and 'Answer:'. In the Answer, write one explicit pick-and-place instruction for each object that must be moved."
+        """
     if use_OPE:
         return """
         "You are an expert on the Franka Emika Panda robot. Your goal is to rework the user's high-level request into a request that the robot can understand and fulfill. "
@@ -224,7 +264,19 @@ def _build_system_goal(mode, use_OPE):
         "Try to understand what the user's needs are and what you can do to meet them. Try to understand what the user is giving relevance to.\n\n"
         
         "IMPORTANT: You are provided with a set of objects and their associated properties. Use this information carefully to ensure both SAFETY and the SUCCESSFUL execution of the task:\n"
-        
+        "GENERAL EXECUTION RULES:\n"
+        "- Preserve every object explicitly requested by the user unless the request asks for a category and only one representative object is needed.\n"
+        "- Preserve every requested action in compound instructions, especially when different verbs or destinations are used.\n"
+        "- A delivery clause must not replace or remove a disposal, placement, sorting, or moving clause from the same instruction.\n"
+        "- If the user says 'bring me', 'give me', or 'I want' and no other destination is explicitly specified, place the selected object or objects in front of the user.\n"
+        "- If the request asks for a useful tool or object but does not name a valid destination, bring the useful object to the user.\n"
+        "- For singular category requests such as 'a', 'an', or 'something', choose one representative object, not all possible alternatives.\n"
+        "- For requests with exclusions such as 'not X', do not select X and choose one suitable alternative unless multiple alternatives are explicitly requested.\n"
+        "- Do not select objects from a different semantic category merely because they are generally safe, edible, or useful.\n"
+        "- When a category is ambiguous, prefer the object whose name or common use most directly matches the requested category over a broader adjacent category.\n"
+        "- If multiple requested objects share the same destination, state each object separately and keep the same destination for all of them.\n"
+        "- Use only destinations that are present in the scene or clearly implied by the user request. Avoid relational destinations such as 'next to another object' unless such a place is explicitly available.\n"
+
         "Provide your response in two sections. First, provide a 'Reasoning:' section where you explain your thought process for solving the request, using the properties of the objects that have been given to you previously and explaining why one item is better than another to meet the demand. Second, provide an 'Answer:' section where you give the robot instructions to execute the task."
         """
     return """
@@ -232,8 +284,20 @@ def _build_system_goal(mode, use_OPE):
         "Consider that the robot can ONLY perform pick and place operations."
         "Consider the most stable and SAFE solution to not damage the elements and the user, even if it means considering alternative objects to the request. "
         "If the user asks for something, consider the 'user' position to give something to the user. For complex requests, try to break down the solution into smaller tasks. "
-        "If the user requests an item, and you are in doubt between several items, bring back the items that seem most correct to you but specify very clearly that only one (or two or the exact number as the case may be) is needed anyway. "
+        "If the user requests a single item by category, choose exactly one best matching object unless the user explicitly asks for all, every, or multiple objects. "
         "Try to understand what the user's needs are and what you can do to meet them. Try to understand what the user is giving relevance to.\n\n"
+        "GENERAL EXECUTION RULES:\n"
+        "- Preserve every object explicitly requested by the user unless the request asks for a category and only one representative object is needed.\n"
+        "- Preserve every requested action in compound instructions, especially when different verbs or destinations are used.\n"
+        "- A delivery clause must not replace or remove a disposal, placement, sorting, or moving clause from the same instruction.\n"
+        "- If the user says 'bring me', 'give me', or 'I want' and no other destination is explicitly specified, place the selected object or objects in front of the user.\n"
+        "- If the request asks for a useful tool or object but does not name a valid destination, bring the useful object to the user.\n"
+        "- For singular category requests such as 'a', 'an', or 'something', choose one representative object, not all possible alternatives.\n"
+        "- For requests with exclusions such as 'not X', do not select X and choose one suitable alternative unless multiple alternatives are explicitly requested.\n"
+        "- Do not select objects from a different semantic category merely because they are generally safe, edible, or useful.\n"
+        "- When a category is ambiguous, prefer the object whose name or common use most directly matches the requested category over a broader adjacent category.\n"
+        "- If multiple requested objects share the same destination, state each object separately and keep the same destination for all of them.\n"
+        "- Use only destinations that are present in the scene or clearly implied by the user request. Avoid relational destinations such as 'next to another object' unless such a place is explicitly available.\n"
 
         "Provide your response in two sections. First, provide a 'Reasoning:' section where you explain your thought process for solving the request, explaining why one item is better than another to meet the demand. Second, provide an 'Answer:' section where you give the robot instructions to execute the task."
         """

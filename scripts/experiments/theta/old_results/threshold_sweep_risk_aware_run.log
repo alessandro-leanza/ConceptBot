@@ -1,0 +1,305 @@
+Instruction files OK
+Prefetch summary
+Total unique terms: 75
+Loaded as API: https://cstr-conceptnet-normalized.hf.space
+[ConceptNet] fetched: en:aluminum tray:CapableOf,HasProperty,IsA,MadeOf,PartOf,RelatedTo,UsedFor (triples=0)
+[ConceptNet] fetched: en:appliance:CapableOf,HasProperty,IsA,MadeOf,PartOf,RelatedTo,UsedFor (triples=20)
+[ConceptNet] fetched: en:area:CapableOf,HasProperty,IsA,MadeOf,PartOf,RelatedTo,UsedFor (triples=24)
+[ConceptNet] fetched: en:arrange:CapableOf,HasProperty,IsA,MadeOf,PartOf,RelatedTo,UsedFor (triples=7)
+[ConceptNet] fetched: en:big block:CapableOf,HasProperty,IsA,MadeOf,PartOf,RelatedTo,UsedFor (triples=0)
+[ConceptNet] fetched: en:block:CapableOf,HasProperty,IsA,MadeOf,PartOf,RelatedTo,UsedFor (triples=14)
+[ConceptNet] fetched: en:breaking:CapableOf,HasProperty,IsA,MadeOf,PartOf,RelatedTo,UsedFor (triples=15)
+[ConceptNet] fetched: en:brick:CapableOf,HasProperty,IsA,MadeOf,PartOf,RelatedTo,UsedFor (triples=24)
+[ConceptNet] cache hit: en:can:CapableOf,HasProperty,IsA,MadeOf,PartOf,RelatedTo,UsedFor
+[ConceptNet] fetched: en:ceramic mug:CapableOf,HasProperty,IsA,MadeOf,PartOf,RelatedTo,UsedFor (triples=0)
+[ConceptNet] fetched: en:child:CapableOf,HasProperty,IsA,MadeOf,PartOf,RelatedTo,UsedFor (triples=31)
+[ConceptNet] fetched: en:container:CapableOf,HasProperty,IsA,MadeOf,PartOf,RelatedTo,UsedFor (triples=32)
+[ConceptNet] cache hit: en:cup:CapableOf,HasProperty,IsA,MadeOf,PartOf,RelatedTo,UsedFor
+[ConceptNet] fetched: en:cut:CapableOf,HasProperty,IsA,MadeOf,PartOf,RelatedTo,UsedFor (triples=22)
+[ConceptNet] fetched: en:cutting board:CapableOf,HasProperty,IsA,MadeOf,PartOf,RelatedTo,UsedFor (triples=4)
+[ConceptNet] fetched: en:designate:CapableOf,HasProperty,IsA,MadeOf,PartOf,RelatedTo,UsedFor (triples=7)
+[ConceptNet] fetched: en:designed:CapableOf,HasProperty,IsA,MadeOf,PartOf,RelatedTo,UsedFor (triples=7)
+[ConceptNet] fetched: en:dishwasher:CapableOf,HasProperty,IsA,MadeOf,PartOf,RelatedTo,UsedFor (triples=12)
+[ConceptNet] fetched: en:dishwasher':CapableOf,HasProperty,IsA,MadeOf,PartOf,RelatedTo,UsedFor (triples=0)
+[ConceptNet] fetched: en:don't:CapableOf,HasProperty,IsA,MadeOf,PartOf,RelatedTo,UsedFor (triples=9)
+[ConceptNet] fetched: en:each:CapableOf,HasProperty,IsA,MadeOf,PartOf,RelatedTo,UsedFor (triples=14)
+[ConceptNet] fetched: en:either:CapableOf,HasProperty,IsA,MadeOf,PartOf,RelatedTo,UsedFor (triples=14)
+[ConceptNet] fetched: en:food:CapableOf,HasProperty,IsA,MadeOf,PartOf,RelatedTo,UsedFor (triples=54)
+[ConceptNet] fetched: en:found:CapableOf,HasProperty,IsA,MadeOf,PartOf,RelatedTo,UsedFor (triples=7)
+[ConceptNet] cache hit: en:give:CapableOf,HasProperty,IsA,MadeOf,PartOf,RelatedTo,UsedFor
+[ConceptNet] fetched: en:glass container:CapableOf,HasProperty,IsA,MadeOf,PartOf,RelatedTo,UsedFor (triples=2)
+[ConceptNet] fetched: en:glass cup:CapableOf,HasProperty,IsA,MadeOf,PartOf,RelatedTo,UsedFor (triples=0)
+[ConceptNet] fetched: en:handwashing:CapableOf,HasProperty,IsA,MadeOf,PartOf,RelatedTo,UsedFor (triples=4)
+[ConceptNet] fetched: en:has:CapableOf,HasProperty,IsA,MadeOf,PartOf,RelatedTo,UsedFor (triples=7)
+[ConceptNet] fetched: en:heat:CapableOf,HasProperty,IsA,MadeOf,PartOf,RelatedTo,UsedFor (triples=29)
+[ConceptNet] fetched: en:hot:CapableOf,HasProperty,IsA,MadeOf,PartOf,RelatedTo,UsedFor (triples=26)
+[ConceptNet] fetched: en:hot tea:CapableOf,HasProperty,IsA,MadeOf,PartOf,RelatedTo,UsedFor (triples=0)
+[ConceptNet] fetched: en:i've:CapableOf,HasProperty,IsA,MadeOf,PartOf,RelatedTo,UsedFor (triples=2)
+[ConceptNet] fetched: en:inside:CapableOf,HasProperty,IsA,MadeOf,PartOf,RelatedTo,UsedFor (triples=13)
+[ConceptNet] cache hit: en:items:CapableOf,HasProperty,IsA,MadeOf,PartOf,RelatedTo,UsedFor
+[ConceptNet] fetched: en:knife:CapableOf,HasProperty,IsA,MadeOf,PartOf,RelatedTo,UsedFor (triples=41)
+[ConceptNet] cache hit: en:like:CapableOf,HasProperty,IsA,MadeOf,PartOf,RelatedTo,UsedFor
+[ConceptNet] fetched: en:made:CapableOf,HasProperty,IsA,MadeOf,PartOf,RelatedTo,UsedFor (triples=8)
+[ConceptNet] fetched: en:medium block:CapableOf,HasProperty,IsA,MadeOf,PartOf,RelatedTo,UsedFor (triples=0)
+[ConceptNet] fetched: en:microwave:CapableOf,HasProperty,IsA,MadeOf,PartOf,RelatedTo,UsedFor (triples=16)
+[ConceptNet] fetched: en:microwave oven:CapableOf,HasProperty,IsA,MadeOf,PartOf,RelatedTo,UsedFor (triples=14)
+[ConceptNet] fetched: en:myself:CapableOf,HasProperty,IsA,MadeOf,PartOf,RelatedTo,UsedFor (triples=8)
+[ConceptNet] fetched: en:objects:CapableOf,HasProperty,IsA,MadeOf,PartOf,RelatedTo,UsedFor (triples=13)
+[ConceptNet] fetched: en:other:CapableOf,HasProperty,IsA,MadeOf,PartOf,RelatedTo,UsedFor (triples=14)
+[ConceptNet] fetched: en:paper:CapableOf,HasProperty,IsA,MadeOf,PartOf,RelatedTo,UsedFor (triples=57)
+[ConceptNet] fetched: en:pewter:CapableOf,HasProperty,IsA,MadeOf,PartOf,RelatedTo,UsedFor (triples=11)
+[ConceptNet] cache hit: en:place:CapableOf,HasProperty,IsA,MadeOf,PartOf,RelatedTo,UsedFor
+[ConceptNet] fetched: en:plastic container:CapableOf,HasProperty,IsA,MadeOf,PartOf,RelatedTo,UsedFor (triples=0)
+[ConceptNet] fetched: en:plastic cup:CapableOf,HasProperty,IsA,MadeOf,PartOf,RelatedTo,UsedFor (triples=1)
+[ConceptNet] cache hit: en:plate:CapableOf,HasProperty,IsA,MadeOf,PartOf,RelatedTo,UsedFor
+[ConceptNet] fetched: en:pour:CapableOf,HasProperty,IsA,MadeOf,PartOf,RelatedTo,UsedFor (triples=15)
+[ConceptNet] cache hit: en:put:CapableOf,HasProperty,IsA,MadeOf,PartOf,RelatedTo,UsedFor
+[ConceptNet] fetched: en:risk:CapableOf,HasProperty,IsA,MadeOf,PartOf,RelatedTo,UsedFor (triples=15)
+[ConceptNet] fetched: en:safety scissors:CapableOf,HasProperty,IsA,MadeOf,PartOf,RelatedTo,UsedFor (triples=0)
+[ConceptNet] fetched: en:scissors:CapableOf,HasProperty,IsA,MadeOf,PartOf,RelatedTo,UsedFor (triples=32)
+[ConceptNet] fetched: en:serve:CapableOf,HasProperty,IsA,MadeOf,PartOf,RelatedTo,UsedFor (triples=7)
+[ConceptNet] fetched: en:silver cutlery:CapableOf,HasProperty,IsA,MadeOf,PartOf,RelatedTo,UsedFor (triples=0)
+[ConceptNet] fetched: en:small block:CapableOf,HasProperty,IsA,MadeOf,PartOf,RelatedTo,UsedFor (triples=1)
+[ConceptNet] fetched: en:son:CapableOf,HasProperty,IsA,MadeOf,PartOf,RelatedTo,UsedFor (triples=15)
+[ConceptNet] fetched: en:sort:CapableOf,HasProperty,IsA,MadeOf,PartOf,RelatedTo,UsedFor (triples=8)
+[ConceptNet] fetched: en:soup bowl:CapableOf,HasProperty,IsA,MadeOf,PartOf,RelatedTo,UsedFor (triples=2)
+[ConceptNet] fetched: en:sphere:CapableOf,HasProperty,IsA,MadeOf,PartOf,RelatedTo,UsedFor (triples=26)
+[ConceptNet] fetched: en:spoon:CapableOf,HasProperty,IsA,MadeOf,PartOf,RelatedTo,UsedFor (triples=27)
+[ConceptNet] fetched: en:stack:CapableOf,HasProperty,IsA,MadeOf,PartOf,RelatedTo,UsedFor (triples=14)
+[ConceptNet] fetched: en:stainless steel fork:CapableOf,HasProperty,IsA,MadeOf,PartOf,RelatedTo,UsedFor (triples=0)
+[ConceptNet] fetched: en:stainless steel spoon:CapableOf,HasProperty,IsA,MadeOf,PartOf,RelatedTo,UsedFor (triples=0)
+[ConceptNet] cache hit: en:table:CapableOf,HasProperty,IsA,MadeOf,PartOf,RelatedTo,UsedFor
+[ConceptNet] cache hit: en:tea:CapableOf,HasProperty,IsA,MadeOf,PartOf,RelatedTo,UsedFor
+[ConceptNet] fetched: en:teapot:CapableOf,HasProperty,IsA,MadeOf,PartOf,RelatedTo,UsedFor (triples=8)
+[ConceptNet] fetched: en:top:CapableOf,HasProperty,IsA,MadeOf,PartOf,RelatedTo,UsedFor (triples=18)
+[ConceptNet] fetched: en:trivet:CapableOf,HasProperty,IsA,MadeOf,PartOf,RelatedTo,UsedFor (triples=5)
+[ConceptNet] cache hit: en:user:CapableOf,HasProperty,IsA,MadeOf,PartOf,RelatedTo,UsedFor
+[ConceptNet] fetched: en:will:CapableOf,HasProperty,IsA,MadeOf,PartOf,RelatedTo,UsedFor (triples=16)
+[ConceptNet] fetched: en:without:CapableOf,HasProperty,IsA,MadeOf,PartOf,RelatedTo,UsedFor (triples=11)
+[ConceptNet] fetched: en:wooden box:CapableOf,HasProperty,IsA,MadeOf,PartOf,RelatedTo,UsedFor (triples=2)
+Mode: ope
+  Relations: CapableOf,HasProperty,IsA,MadeOf,PartOf,RelatedTo,UsedFor
+  Succeeded: 75
+  Failed: 0
+[ConceptNet] fetched: en:aluminum tray:CapableOf,HasProperty,IsA,MannerOf,UsedFor (triples=0)
+[ConceptNet] fetched: en:appliance:CapableOf,HasProperty,IsA,MannerOf,UsedFor (triples=6)
+[ConceptNet] fetched: en:area:CapableOf,HasProperty,IsA,MannerOf,UsedFor (triples=10)
+[ConceptNet] fetched: en:arrange:CapableOf,HasProperty,IsA,MannerOf,UsedFor (triples=1)
+[ConceptNet] fetched: en:big block:CapableOf,HasProperty,IsA,MannerOf,UsedFor (triples=0)
+[ConceptNet] fetched: en:block:CapableOf,HasProperty,IsA,MannerOf,UsedFor (triples=1)
+[ConceptNet] fetched: en:breaking:CapableOf,HasProperty,IsA,MannerOf,UsedFor (triples=8)
+[ConceptNet] fetched: en:brick:CapableOf,HasProperty,IsA,MannerOf,UsedFor (triples=6)
+[ConceptNet] cache hit: en:can:CapableOf,HasProperty,IsA,MannerOf,UsedFor
+[ConceptNet] fetched: en:ceramic mug:CapableOf,HasProperty,IsA,MannerOf,UsedFor (triples=0)
+[ConceptNet] fetched: en:child:CapableOf,HasProperty,IsA,MannerOf,UsedFor (triples=17)
+[ConceptNet] fetched: en:container:CapableOf,HasProperty,IsA,MannerOf,UsedFor (triples=24)
+[ConceptNet] cache hit: en:cup:CapableOf,HasProperty,IsA,MannerOf,UsedFor
+[ConceptNet] fetched: en:cut:CapableOf,HasProperty,IsA,MannerOf,UsedFor (triples=11)
+[ConceptNet] fetched: en:cutting board:CapableOf,HasProperty,IsA,MannerOf,UsedFor (triples=0)
+[ConceptNet] fetched: en:designate:CapableOf,HasProperty,IsA,MannerOf,UsedFor (triples=0)
+[ConceptNet] fetched: en:designed:CapableOf,HasProperty,IsA,MannerOf,UsedFor (triples=0)
+[ConceptNet] fetched: en:dishwasher:CapableOf,HasProperty,IsA,MannerOf,UsedFor (triples=4)
+[ConceptNet] fetched: en:dishwasher':CapableOf,HasProperty,IsA,MannerOf,UsedFor (triples=0)
+[ConceptNet] fetched: en:don't:CapableOf,HasProperty,IsA,MannerOf,UsedFor (triples=0)
+[ConceptNet] fetched: en:each:CapableOf,HasProperty,IsA,MannerOf,UsedFor (triples=0)
+[ConceptNet] fetched: en:either:CapableOf,HasProperty,IsA,MannerOf,UsedFor (triples=0)
+[ConceptNet] fetched: en:food:CapableOf,HasProperty,IsA,MannerOf,UsedFor (triples=43)
+[ConceptNet] fetched: en:found:CapableOf,HasProperty,IsA,MannerOf,UsedFor (triples=0)
+[ConceptNet] cache hit: en:give:CapableOf,HasProperty,IsA,MannerOf,UsedFor
+[ConceptNet] fetched: en:glass container:CapableOf,HasProperty,IsA,MannerOf,UsedFor (triples=0)
+[ConceptNet] fetched: en:glass cup:CapableOf,HasProperty,IsA,MannerOf,UsedFor (triples=0)
+[ConceptNet] fetched: en:handwashing:CapableOf,HasProperty,IsA,MannerOf,UsedFor (triples=0)
+[ConceptNet] fetched: en:has:CapableOf,HasProperty,IsA,MannerOf,UsedFor (triples=0)
+[ConceptNet] fetched: en:heat:CapableOf,HasProperty,IsA,MannerOf,UsedFor (triples=20)
+[ConceptNet] fetched: en:hot:CapableOf,HasProperty,IsA,MannerOf,UsedFor (triples=12)
+[ConceptNet] fetched: en:hot tea:CapableOf,HasProperty,IsA,MannerOf,UsedFor (triples=0)
+[ConceptNet] fetched: en:i've:CapableOf,HasProperty,IsA,MannerOf,UsedFor (triples=0)
+[ConceptNet] fetched: en:inside:CapableOf,HasProperty,IsA,MannerOf,UsedFor (triples=1)
+[ConceptNet] cache hit: en:items:CapableOf,HasProperty,IsA,MannerOf,UsedFor
+[ConceptNet] fetched: en:knife:CapableOf,HasProperty,IsA,MannerOf,UsedFor (triples=26)
+[ConceptNet] cache hit: en:like:CapableOf,HasProperty,IsA,MannerOf,UsedFor
+[ConceptNet] fetched: en:made:CapableOf,HasProperty,IsA,MannerOf,UsedFor (triples=1)
+[ConceptNet] fetched: en:medium block:CapableOf,HasProperty,IsA,MannerOf,UsedFor (triples=0)
+[ConceptNet] fetched: en:microwave:CapableOf,HasProperty,IsA,MannerOf,UsedFor (triples=9)
+[ConceptNet] fetched: en:microwave oven:CapableOf,HasProperty,IsA,MannerOf,UsedFor (triples=7)
+[ConceptNet] fetched: en:myself:CapableOf,HasProperty,IsA,MannerOf,UsedFor (triples=0)
+[ConceptNet] fetched: en:objects:CapableOf,HasProperty,IsA,MannerOf,UsedFor (triples=6)
+[ConceptNet] fetched: en:other:CapableOf,HasProperty,IsA,MannerOf,UsedFor (triples=0)
+[ConceptNet] fetched: en:paper:CapableOf,HasProperty,IsA,MannerOf,UsedFor (triples=34)
+[ConceptNet] fetched: en:pewter:CapableOf,HasProperty,IsA,MannerOf,UsedFor (triples=2)
+[ConceptNet] cache hit: en:place:CapableOf,HasProperty,IsA,MannerOf,UsedFor
+[ConceptNet] fetched: en:plastic container:CapableOf,HasProperty,IsA,MannerOf,UsedFor (triples=0)
+[ConceptNet] fetched: en:plastic cup:CapableOf,HasProperty,IsA,MannerOf,UsedFor (triples=1)
+[ConceptNet] cache hit: en:plate:CapableOf,HasProperty,IsA,MannerOf,UsedFor
+[ConceptNet] fetched: en:pour:CapableOf,HasProperty,IsA,MannerOf,UsedFor (triples=1)
+[ConceptNet] cache hit: en:put:CapableOf,HasProperty,IsA,MannerOf,UsedFor
+[ConceptNet] fetched: en:risk:CapableOf,HasProperty,IsA,MannerOf,UsedFor (triples=1)
+[ConceptNet] fetched: en:safety scissors:CapableOf,HasProperty,IsA,MannerOf,UsedFor (triples=0)
+[ConceptNet] fetched: en:scissors:CapableOf,HasProperty,IsA,MannerOf,UsedFor (triples=17)
+[ConceptNet] fetched: en:serve:CapableOf,HasProperty,IsA,MannerOf,UsedFor (triples=1)
+[ConceptNet] fetched: en:silver cutlery:CapableOf,HasProperty,IsA,MannerOf,UsedFor (triples=0)
+[ConceptNet] fetched: en:small block:CapableOf,HasProperty,IsA,MannerOf,UsedFor (triples=1)
+[ConceptNet] fetched: en:son:CapableOf,HasProperty,IsA,MannerOf,UsedFor (triples=0)
+[ConceptNet] fetched: en:sort:CapableOf,HasProperty,IsA,MannerOf,UsedFor (triples=1)
+[ConceptNet] fetched: en:soup bowl:CapableOf,HasProperty,IsA,MannerOf,UsedFor (triples=0)
+[ConceptNet] fetched: en:sphere:CapableOf,HasProperty,IsA,MannerOf,UsedFor (triples=12)
+[ConceptNet] fetched: en:spoon:CapableOf,HasProperty,IsA,MannerOf,UsedFor (triples=13)
+[ConceptNet] fetched: en:stack:CapableOf,HasProperty,IsA,MannerOf,UsedFor (triples=1)
+[ConceptNet] fetched: en:stainless steel fork:CapableOf,HasProperty,IsA,MannerOf,UsedFor (triples=0)
+[ConceptNet] fetched: en:stainless steel spoon:CapableOf,HasProperty,IsA,MannerOf,UsedFor (triples=0)
+[ConceptNet] cache hit: en:table:CapableOf,HasProperty,IsA,MannerOf,UsedFor
+[ConceptNet] cache hit: en:tea:CapableOf,HasProperty,IsA,MannerOf,UsedFor
+[ConceptNet] fetched: en:teapot:CapableOf,HasProperty,IsA,MannerOf,UsedFor (triples=1)
+[ConceptNet] fetched: en:top:CapableOf,HasProperty,IsA,MannerOf,UsedFor (triples=4)
+[ConceptNet] fetched: en:trivet:CapableOf,HasProperty,IsA,MannerOf,UsedFor (triples=0)
+[ConceptNet] cache hit: en:user:CapableOf,HasProperty,IsA,MannerOf,UsedFor
+[ConceptNet] fetched: en:will:CapableOf,HasProperty,IsA,MannerOf,UsedFor (triples=2)
+[ConceptNet] fetched: en:without:CapableOf,HasProperty,IsA,MannerOf,UsedFor (triples=0)
+[ConceptNet] fetched: en:wooden box:CapableOf,HasProperty,IsA,MannerOf,UsedFor (triples=0)
+Mode: urp
+  Relations: CapableOf,HasProperty,IsA,MannerOf,UsedFor
+  Succeeded: 75
+  Failed: 0
+[precompute] category=risk_aware id=ra_01
+[ConceptNet] cache hit: en:hot tea:CapableOf,HasProperty,IsA,MadeOf,PartOf,RelatedTo,UsedFor
+[ConceptNet] cache hit: en:hot tea:CapableOf,HasProperty,IsA,MannerOf,UsedFor
+[ConceptNet] cache hit: en:plastic cup:CapableOf,HasProperty,IsA,MadeOf,PartOf,RelatedTo,UsedFor
+[ConceptNet] cache hit: en:plastic cup:CapableOf,HasProperty,IsA,MannerOf,UsedFor
+[ConceptNet] cache hit: en:ceramic mug:CapableOf,HasProperty,IsA,MadeOf,PartOf,RelatedTo,UsedFor
+[ConceptNet] cache hit: en:ceramic mug:CapableOf,HasProperty,IsA,MannerOf,UsedFor
+[ConceptNet] cache hit: en:tea:CapableOf,HasProperty,IsA,MannerOf,UsedFor
+[ConceptNet] cache hit: en:cup:CapableOf,HasProperty,IsA,MannerOf,UsedFor
+[precompute] category=risk_aware id=ra_02
+[ConceptNet] cache hit: en:aluminum tray:CapableOf,HasProperty,IsA,MadeOf,PartOf,RelatedTo,UsedFor
+[ConceptNet] cache hit: en:aluminum tray:CapableOf,HasProperty,IsA,MannerOf,UsedFor
+[ConceptNet] cache hit: en:soup bowl:CapableOf,HasProperty,IsA,MadeOf,PartOf,RelatedTo,UsedFor
+[ConceptNet] cache hit: en:soup bowl:CapableOf,HasProperty,IsA,MannerOf,UsedFor
+[ConceptNet] cache hit: en:glass container:CapableOf,HasProperty,IsA,MadeOf,PartOf,RelatedTo,UsedFor
+[ConceptNet] cache hit: en:glass container:CapableOf,HasProperty,IsA,MannerOf,UsedFor
+[ConceptNet] cache hit: en:microwave oven:CapableOf,HasProperty,IsA,MadeOf,PartOf,RelatedTo,UsedFor
+[ConceptNet] cache hit: en:microwave oven:CapableOf,HasProperty,IsA,MannerOf,UsedFor
+[ConceptNet] cache hit: en:container:CapableOf,HasProperty,IsA,MannerOf,UsedFor
+[ConceptNet] cache hit: en:food:CapableOf,HasProperty,IsA,MannerOf,UsedFor
+[precompute] category=risk_aware id=ra_03
+[ConceptNet] cache hit: en:small block:CapableOf,HasProperty,IsA,MadeOf,PartOf,RelatedTo,UsedFor
+[ConceptNet] cache hit: en:small block:CapableOf,HasProperty,IsA,MannerOf,UsedFor
+[ConceptNet] cache hit: en:big block:CapableOf,HasProperty,IsA,MadeOf,PartOf,RelatedTo,UsedFor
+[ConceptNet] cache hit: en:big block:CapableOf,HasProperty,IsA,MannerOf,UsedFor
+[ConceptNet] cache hit: en:medium block:CapableOf,HasProperty,IsA,MadeOf,PartOf,RelatedTo,UsedFor
+[ConceptNet] cache hit: en:medium block:CapableOf,HasProperty,IsA,MannerOf,UsedFor
+[ConceptNet] cache hit: en:stack:CapableOf,HasProperty,IsA,MannerOf,UsedFor
+[ConceptNet] cache hit: en:objects:CapableOf,HasProperty,IsA,MannerOf,UsedFor
+[precompute] category=risk_aware id=ra_04
+[ConceptNet] cache hit: en:block:CapableOf,HasProperty,IsA,MadeOf,PartOf,RelatedTo,UsedFor
+[ConceptNet] cache hit: en:block:CapableOf,HasProperty,IsA,MannerOf,UsedFor
+[ConceptNet] cache hit: en:sphere:CapableOf,HasProperty,IsA,MadeOf,PartOf,RelatedTo,UsedFor
+[ConceptNet] cache hit: en:sphere:CapableOf,HasProperty,IsA,MannerOf,UsedFor
+[ConceptNet] cache hit: en:stack:CapableOf,HasProperty,IsA,MannerOf,UsedFor
+[ConceptNet] cache hit: en:objects:CapableOf,HasProperty,IsA,MannerOf,UsedFor
+[precompute] category=risk_aware id=ra_05
+[ConceptNet] cache hit: en:scissors:CapableOf,HasProperty,IsA,MadeOf,PartOf,RelatedTo,UsedFor
+[ConceptNet] cache hit: en:scissors:CapableOf,HasProperty,IsA,MannerOf,UsedFor
+[ConceptNet] cache hit: en:knife:CapableOf,HasProperty,IsA,MadeOf,PartOf,RelatedTo,UsedFor
+[ConceptNet] cache hit: en:knife:CapableOf,HasProperty,IsA,MannerOf,UsedFor
+[ConceptNet] cache hit: en:safety scissors:CapableOf,HasProperty,IsA,MadeOf,PartOf,RelatedTo,UsedFor
+[ConceptNet] cache hit: en:safety scissors:CapableOf,HasProperty,IsA,MannerOf,UsedFor
+[ConceptNet] cache hit: en:user:CapableOf,HasProperty,IsA,MadeOf,PartOf,RelatedTo,UsedFor
+[ConceptNet] cache hit: en:user:CapableOf,HasProperty,IsA,MannerOf,UsedFor
+[ConceptNet] cache hit: en:child:CapableOf,HasProperty,IsA,MadeOf,PartOf,RelatedTo,UsedFor
+[ConceptNet] cache hit: en:child:CapableOf,HasProperty,IsA,MannerOf,UsedFor
+[ConceptNet] cache hit: en:scissors:CapableOf,HasProperty,IsA,MannerOf,UsedFor
+[ConceptNet] cache hit: en:paper:CapableOf,HasProperty,IsA,MannerOf,UsedFor
+[precompute] category=risk_aware id=ra_06
+[ConceptNet] cache hit: en:spoon:CapableOf,HasProperty,IsA,MadeOf,PartOf,RelatedTo,UsedFor
+[ConceptNet] cache hit: en:spoon:CapableOf,HasProperty,IsA,MannerOf,UsedFor
+[ConceptNet] cache hit: en:teapot:CapableOf,HasProperty,IsA,MadeOf,PartOf,RelatedTo,UsedFor
+[ConceptNet] cache hit: en:teapot:CapableOf,HasProperty,IsA,MannerOf,UsedFor
+[ConceptNet] cache hit: en:trivet:CapableOf,HasProperty,IsA,MadeOf,PartOf,RelatedTo,UsedFor
+[ConceptNet] cache hit: en:trivet:CapableOf,HasProperty,IsA,MannerOf,UsedFor
+[ConceptNet] cache hit: en:plate:CapableOf,HasProperty,IsA,MadeOf,PartOf,RelatedTo,UsedFor
+[ConceptNet] cache hit: en:plate:CapableOf,HasProperty,IsA,MannerOf,UsedFor
+[ConceptNet] cache hit: en:table:CapableOf,HasProperty,IsA,MadeOf,PartOf,RelatedTo,UsedFor
+[ConceptNet] cache hit: en:table:CapableOf,HasProperty,IsA,MannerOf,UsedFor
+[ConceptNet] cache hit: en:tea:CapableOf,HasProperty,IsA,MannerOf,UsedFor
+[ConceptNet] cache hit: en:serve:CapableOf,HasProperty,IsA,MannerOf,UsedFor
+[precompute] category=risk_aware id=ra_07
+[ConceptNet] cache hit: en:plate:CapableOf,HasProperty,IsA,MadeOf,PartOf,RelatedTo,UsedFor
+[ConceptNet] cache hit: en:plate:CapableOf,HasProperty,IsA,MannerOf,UsedFor
+[ConceptNet] cache hit: en:stainless steel fork:CapableOf,HasProperty,IsA,MadeOf,PartOf,RelatedTo,UsedFor
+[ConceptNet] cache hit: en:stainless steel fork:CapableOf,HasProperty,IsA,MannerOf,UsedFor
+[ConceptNet] cache hit: en:stainless steel spoon:CapableOf,HasProperty,IsA,MadeOf,PartOf,RelatedTo,UsedFor
+[ConceptNet] cache hit: en:stainless steel spoon:CapableOf,HasProperty,IsA,MannerOf,UsedFor
+[ConceptNet] cache hit: en:pewter:CapableOf,HasProperty,IsA,MadeOf,PartOf,RelatedTo,UsedFor
+[ConceptNet] cache hit: en:pewter:CapableOf,HasProperty,IsA,MannerOf,UsedFor
+[ConceptNet] cache hit: en:cup:CapableOf,HasProperty,IsA,MadeOf,PartOf,RelatedTo,UsedFor
+[ConceptNet] cache hit: en:cup:CapableOf,HasProperty,IsA,MannerOf,UsedFor
+[ConceptNet] cache hit: en:cutting board:CapableOf,HasProperty,IsA,MadeOf,PartOf,RelatedTo,UsedFor
+[ConceptNet] cache hit: en:cutting board:CapableOf,HasProperty,IsA,MannerOf,UsedFor
+[ConceptNet] cache hit: en:silver cutlery:CapableOf,HasProperty,IsA,MadeOf,PartOf,RelatedTo,UsedFor
+[ConceptNet] cache hit: en:silver cutlery:CapableOf,HasProperty,IsA,MannerOf,UsedFor
+[ConceptNet] cache hit: en:dishwasher:CapableOf,HasProperty,IsA,MadeOf,PartOf,RelatedTo,UsedFor
+[ConceptNet] cache hit: en:dishwasher:CapableOf,HasProperty,IsA,MannerOf,UsedFor
+[ConceptNet] cache hit: en:handwashing:CapableOf,HasProperty,IsA,MadeOf,PartOf,RelatedTo,UsedFor
+[ConceptNet] cache hit: en:handwashing:CapableOf,HasProperty,IsA,MannerOf,UsedFor
+[ConceptNet] cache hit: en:dishwasher:CapableOf,HasProperty,IsA,MannerOf,UsedFor
+[ConceptNet] cache hit: en:handwashing:CapableOf,HasProperty,IsA,MannerOf,UsedFor
+[precompute] category=risk_aware id=ra_08
+[ConceptNet] cache hit: en:wooden box:CapableOf,HasProperty,IsA,MadeOf,PartOf,RelatedTo,UsedFor
+[ConceptNet] cache hit: en:wooden box:CapableOf,HasProperty,IsA,MannerOf,UsedFor
+[ConceptNet] cache hit: en:glass cup:CapableOf,HasProperty,IsA,MadeOf,PartOf,RelatedTo,UsedFor
+[ConceptNet] cache hit: en:glass cup:CapableOf,HasProperty,IsA,MannerOf,UsedFor
+[ConceptNet] cache hit: en:brick:CapableOf,HasProperty,IsA,MadeOf,PartOf,RelatedTo,UsedFor
+[ConceptNet] cache hit: en:brick:CapableOf,HasProperty,IsA,MannerOf,UsedFor
+[ConceptNet] cache hit: en:plastic container:CapableOf,HasProperty,IsA,MadeOf,PartOf,RelatedTo,UsedFor
+[ConceptNet] cache hit: en:plastic container:CapableOf,HasProperty,IsA,MannerOf,UsedFor
+[ConceptNet] cache hit: en:arrange:CapableOf,HasProperty,IsA,MannerOf,UsedFor
+[ConceptNet] cache hit: en:objects:CapableOf,HasProperty,IsA,MannerOf,UsedFor
+Precompute completed
+Items processed: 8
+embedding_cache: cache/embedding_cache.json
+keyword_cache: cache/keyword_cache.json
+similarity_cache: cache/similarity_cache.json
+[progress] theta=0.65 category=risk_aware id=ra_01 trial=1/1
+[progress] theta=0.65 category=risk_aware id=ra_02 trial=1/1
+[progress] theta=0.65 category=risk_aware id=ra_03 trial=1/1
+[progress] theta=0.65 category=risk_aware id=ra_04 trial=1/1
+[progress] theta=0.65 category=risk_aware id=ra_05 trial=1/1
+[progress] theta=0.65 category=risk_aware id=ra_06 trial=1/1
+[progress] theta=0.65 category=risk_aware id=ra_07 trial=1/1
+[progress] theta=0.65 category=risk_aware id=ra_08 trial=1/1
+[progress] theta=0.7 category=risk_aware id=ra_01 trial=1/1
+[progress] theta=0.7 category=risk_aware id=ra_02 trial=1/1
+[progress] theta=0.7 category=risk_aware id=ra_03 trial=1/1
+[progress] theta=0.7 category=risk_aware id=ra_04 trial=1/1
+[progress] theta=0.7 category=risk_aware id=ra_05 trial=1/1
+[progress] theta=0.7 category=risk_aware id=ra_06 trial=1/1
+[progress] theta=0.7 category=risk_aware id=ra_07 trial=1/1
+[progress] theta=0.7 category=risk_aware id=ra_08 trial=1/1
+[progress] theta=0.75 category=risk_aware id=ra_01 trial=1/1
+[progress] theta=0.75 category=risk_aware id=ra_02 trial=1/1
+[progress] theta=0.75 category=risk_aware id=ra_03 trial=1/1
+[progress] theta=0.75 category=risk_aware id=ra_04 trial=1/1
+[progress] theta=0.75 category=risk_aware id=ra_05 trial=1/1
+[progress] theta=0.75 category=risk_aware id=ra_06 trial=1/1
+[progress] theta=0.75 category=risk_aware id=ra_07 trial=1/1
+[progress] theta=0.75 category=risk_aware id=ra_08 trial=1/1
+[progress] theta=0.8 category=risk_aware id=ra_01 trial=1/1
+[progress] theta=0.8 category=risk_aware id=ra_02 trial=1/1
+[progress] theta=0.8 category=risk_aware id=ra_03 trial=1/1
+[progress] theta=0.8 category=risk_aware id=ra_04 trial=1/1
+[progress] theta=0.8 category=risk_aware id=ra_05 trial=1/1
+[progress] theta=0.8 category=risk_aware id=ra_06 trial=1/1
+[progress] theta=0.8 category=risk_aware id=ra_07 trial=1/1
+[progress] theta=0.8 category=risk_aware id=ra_08 trial=1/1
+[progress] theta=0.85 category=risk_aware id=ra_01 trial=1/1
+[progress] theta=0.85 category=risk_aware id=ra_02 trial=1/1
+[progress] theta=0.85 category=risk_aware id=ra_03 trial=1/1
+[progress] theta=0.85 category=risk_aware id=ra_04 trial=1/1
+[progress] theta=0.85 category=risk_aware id=ra_05 trial=1/1
+[progress] theta=0.85 category=risk_aware id=ra_06 trial=1/1
+[progress] theta=0.85 category=risk_aware id=ra_07 trial=1/1
+[progress] theta=0.85 category=risk_aware id=ra_08 trial=1/1
+Saved plot to results/threshold_sweep_risk_aware.png
+Best theta: 0.7
+Overall success rate: 0.25
+Trade-off: higher theta keeps fewer relations (lower avg relations per object/keyword), which can reduce noise but may hurt recall; lower theta keeps more relations, which can improve recall but may add noise.

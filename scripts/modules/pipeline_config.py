@@ -57,12 +57,12 @@ CATEGORY_PIPELINE = {
     },
     "implicit": {
         "ope_mode": "standard",
-        "urp_mode": "standard",
+        "urp_mode": "implicit",
         "ope_properties": STANDARD_OPE_PROPERTIES,
         "ope_prompt_type": "standard_binary",
-        "urp_prompt_type": "standard_properties",
+        "urp_prompt_type": "implicit_needs",
         "ope_cache_kind": "ope_standard",
-        "urp_cache_prefix": "urp",
+        "urp_cache_prefix": "urp_implicit",
         "dynamic_property_induction": False,
     },
     "toxicity": {

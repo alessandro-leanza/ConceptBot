@@ -251,6 +251,8 @@ def _planner_targets(found_objects: List[str], item: Dict[str, Any]) -> Dict[str
     for obj in found_objects:
         if obj in PLANNER_DESTINATIONS or obj in gold_destinations:
             place_targets[obj] = obj
+    for dest in sorted(gold_destinations):
+        place_targets.setdefault(dest, dest)
     return place_targets
 
 

@@ -4,6 +4,8 @@ import time
 from typing import Any, Dict, List, Optional
 
 
+CONFIDENCE_LEVELS = {"low", "medium", "high"}
+
 NEAR_DUPLICATE_ALIASES = {
     "breakable": "fragile",
     "easily breakable": "fragile",
@@ -157,6 +159,202 @@ def _validate_rejected_properties(raw_items: Any) -> List[Dict[str, str]]:
     return rejected
 
 
+def _clean_string_list(value: Any, limit: int = 8) -> List[str]:
+    if not isinstance(value, list):
+        return []
+    output = []
+    for item in value:
+        if item is None:
+            continue
+        text = str(item).strip()
+        if text:
+            output.append(text)
+        if len(output) >= limit:
+            break
+    return output
+
+
+def _dynamic_need_fallback(reason: str) -> Dict[str, Any]:
+    return {
+        "dynamic_property_induction_required": False,
+        "confidence": "low",
+        "missing_property_reasons": [reason] if reason else [],
+        "expected_property_types": [],
+        "recommended_mode": "standard",
+        "source": "fallback",
+    }
+
+
+def _has_explicit_dynamic_constraint(user_instruction: str) -> bool:
+    text = normalize_property_name(user_instruction)
+    constraint_terms = {
+        "away from food",
+        "chemical",
+        "clean",
+        "compatible",
+        "container",
+        "contaminat",
+        "food safe",
+        "food-safe",
+        "heat",
+        "hot",
+        "microwave",
+        "non flammable",
+        "non-flammable",
+        "protect",
+        "reactive",
+        "resistant",
+        "safe container",
+        "water",
+        "waterproof",
+    }
+    return any(term in text for term in constraint_terms)
+
+
+def _validate_dynamic_need(payload: Dict[str, Any], user_instruction: str) -> Dict[str, Any]:
+    required = bool(payload.get("dynamic_property_induction_required", False))
+    confidence = str(payload.get("confidence", "low")).strip().lower()
+    if confidence not in CONFIDENCE_LEVELS:
+        confidence = "low"
+    missing_property_reasons = _clean_string_list(payload.get("missing_property_reasons"))
+    expected_property_types = [
+        normalize_property_name(item)
+        for item in _clean_string_list(payload.get("expected_property_types"))
+        if normalize_property_name(item)
+    ]
+
+    food_category_only = required and expected_property_types and all(
+        prop in {"allergen", "clean", "container", "edible", "food-safe", "packaged", "perishable"}
+        for prop in expected_property_types
+    )
+    if food_category_only and not _has_explicit_dynamic_constraint(user_instruction):
+        required = False
+        confidence = "medium"
+        missing_property_reasons = [
+            "Ordinary food-category selection does not require dynamic property induction unless the instruction states an explicit compatibility, safety, or container constraint."
+        ]
+
+    recommended_mode = str(payload.get("recommended_mode", "")).strip().lower()
+    if recommended_mode not in {"dynamic", "standard"}:
+        recommended_mode = "dynamic" if required else "standard"
+    if required:
+        recommended_mode = "dynamic"
+    else:
+        recommended_mode = "standard"
+
+    return {
+        "dynamic_property_induction_required": required,
+        "confidence": confidence,
+        "missing_property_reasons": missing_property_reasons,
+        "expected_property_types": expected_property_types,
+        "recommended_mode": recommended_mode,
+        "source": "llm",
+    }
+
+
+def assess_dynamic_property_need(
+    user_instruction: str,
+    detected_objects: List[str],
+    base_properties: Optional[List[str]] = None,
+    task_category: Optional[str] = None,
+    model: str = "gpt-4o-mini",
+    use_category_overrides: bool = False,
+) -> Dict[str, Any]:
+    """
+    Decide whether OPE should expand beyond its base property schema.
+
+    This is a standalone audit helper. It does not change default OPE behavior;
+    callers must explicitly run induction and pass dynamic properties to OPE.
+    """
+    base_properties = list(base_properties or [])
+    system_prompt = """
+You are auditing the Object Properties Extraction module of a robot pick-and-place planning system.
+
+Decide whether the base OPE property schema is insufficient for the user's task and should be expanded with Dynamic Property Induction.
+
+The base schema may already cover generic properties such as dangerous, fragile, deformable, hold liquid, safe, stable, and poisonous. Dynamic Property Induction should be required only when the task needs additional task-specific properties that are not already covered by the base schema and that could change object selection, destination selection, or task success.
+
+Require dynamic properties for task-specific compatibility, material, containment, protection, cleanliness, food-safety, water-resistance, heat-resistance, microwave-compatibility, chemical interaction, or other feasibility constraints that are missing from the base properties.
+
+Do NOT require dynamic properties merely because extra labels could be interesting.
+Do NOT require dynamic properties just to classify an ordinary requested object category, such as snack, fruit, drink, color, or simple object type; URP and the base OPE schema handle those cases.
+Do NOT require them for ordinary pick-and-place, ordinary food/drink retrieval, simple semantic ambiguity, or tasks where the base schema is sufficient.
+
+Return JSON only with this schema:
+{
+  "dynamic_property_induction_required": true or false,
+  "confidence": "low" | "medium" | "high",
+  "missing_property_reasons": ["short reason"],
+  "expected_property_types": ["short property type"],
+  "recommended_mode": "dynamic" | "standard"
+}
+""".strip()
+
+    user_payload = {
+        "user_instruction": user_instruction,
+        "detected_objects": list(detected_objects),
+        "task_category": task_category,
+        "base_properties": base_properties,
+        "positive_examples": [
+            {
+                "instruction": "Heat my food in the microwave.",
+                "expected_property_types": ["microwave-safe", "heat-resistant", "non-metallic", "container"],
+                "reason": "The base schema does not explicitly cover microwave compatibility.",
+            },
+            {
+                "instruction": "Move the item that can protect the phone from water.",
+                "expected_property_types": ["waterproof", "protective"],
+                "reason": "The base schema does not cover water protection.",
+            },
+            {
+                "instruction": "Put the snack in a safe container for food.",
+                "expected_property_types": ["food-safe", "clean", "container"],
+                "reason": "The base schema does not explicitly cover food-contact suitability.",
+            },
+        ],
+        "negative_examples": [
+            {
+                "instruction": "Bring me an apple.",
+                "reason": "Ordinary object selection is covered by standard OPE and URP.",
+            },
+            {
+                "instruction": "Move the red block to the table.",
+                "reason": "No task-specific missing property is needed.",
+            },
+            {
+                "instruction": "Bring me something to drink.",
+                "reason": "The base property hold liquid is already available for drink-container reasoning.",
+            },
+            {
+                "instruction": "Bring me a snack.",
+                "reason": "An ordinary food-category request is semantic object selection, not a missing-property problem.",
+            },
+        ],
+    }
+
+    try:
+        from scripts.modules.semantic_cache import get_openai_client, log_openai_call
+
+        client = get_openai_client()
+        start = time.monotonic()
+        response = client.chat.completions.create(
+            model=model,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": json.dumps(user_payload, indent=2)},
+            ],
+            temperature=0,
+            response_format={"type": "json_object"},
+        )
+        log_openai_call("dynamic_property_need", user_instruction, time.monotonic() - start)
+        payload = json.loads(response.choices[0].message.content)
+        if not isinstance(payload, dict):
+            return _dynamic_need_fallback("Dynamic property need assessor returned non-object JSON.")
+        return _validate_dynamic_need(payload, user_instruction)
+    except Exception as exc:
+        return _dynamic_need_fallback(f"{type(exc).__name__}: {exc}")
+
+
 def induce_task_properties(
     user_instruction: str,
     detected_objects: List[str],
@@ -192,7 +390,12 @@ def induce_task_properties(
         "- Do not propose more than max_properties dynamic properties.\n"
         "- Prefer safety, feasibility, compatibility, material, containment, and task-success properties.\n"
         "- Avoid vague properties such as useful, appropriate, good, or relevant.\n"
-        "- Do not replace base properties; only add missing task-relevant properties."
+        "- Do not replace base properties; only add missing task-relevant properties.\n"
+        "- If the task asks for protection from water, include properties such as waterproof and protective.\n"
+        "- If the task asks for a food container, include properties such as food-safe, clean, non-toxic, and container.\n"
+        "- If the task involves chemicals near food, include properties such as contaminating, chemically reactive, and food-safe.\n"
+        "- If the task involves heat, include properties such as heat-resistant and non-flammable when they are not already covered.\n"
+        "- If the task involves microwave heating, include microwave-safe, heat-resistant, non-metallic, and container when relevant."
     )
     user_payload = {
         "user_instruction": user_instruction,
