@@ -1,5 +1,5 @@
 services:
-  conceptbot-exp:
+  conceptbot:
     build:
       context: .
       dockerfile: Dockerfile
@@ -10,4 +10,4 @@ services:
       PYTHONPATH: /workspace
     volumes:
       - .:/workspace
-    command: python scripts/experiments/theta/validate_instructions.py
+    command: python instructions/load_instructions.py

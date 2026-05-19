@@ -1,37 +1,25 @@
-# Instructions Dataset
+# Instructions Examples
 
-This folder contains task instructions and object lists extracted from the paper appendices.
-All object names are normalized to lowercase for easier matching in code.
+The public release includes a small example instruction file, `examples.json`, to document the benchmark schema without releasing the full internal benchmark suite.
 
 ## Schema
-Each category file is a JSON object with:
-- `category`: category name
-- `policy`: category-level policy metadata
-  - `order_matters`: whether action order matters
-  - `type`: `sequence`, `rules`, or `mixed`
-- `shared_objects`: array or null. If not null, the objects apply to all items in the file.
-- `items`: list of items
-  - `id`: stable identifier
-  - `instruction`: string
-  - `objects`: array or null (null when `shared_objects` is used)
-  - `gold`: gold policy definitions
-    - `sequences`: list of alternative action sequences
-    - `rules`: mapping of destination -> list of required objects
+
+Each instruction file is a JSON object with:
+
+- `category`: category name.
+- `policy`: category-level metadata.
+  - `order_matters`: whether action order matters.
+  - `type`: `sequence`, `rules`, or `mixed`.
+- `shared_objects`: optional object list shared by all items.
+- `items`: instruction records.
+  - `id`: stable identifier.
+  - `instruction`: natural-language user request.
+  - `objects`: item-specific object list, or `null` when `shared_objects` is used.
+  - `gold`: example target policy.
 
 ## Loader Example
-Use `load_instructions.py` to load and resolve items:
 
 ```bash
-# List available categories
 python instructions/load_instructions.py
-
-# Print all items in a category
-python instructions/load_instructions.py explicit_unambiguous
-```
-
-## Validation
-Validate instruction files:
-
-```bash
-python scripts/experiments/theta/validate_instructions.py
+python instructions/load_instructions.py examples
 ```

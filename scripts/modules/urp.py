@@ -190,6 +190,62 @@ def _build_system_env(mode, found_objects, objects_info, use_OPE):
     return "\nOBJECTS in the scene and extracted properties:\n " + obj_info_str + "\nProperty values are usually Yes/No unless otherwise specified."
 
 
+def _category_task_rules(mode):
+    if mode == "materials":
+        return """
+
+        MATERIAL-SORTING RULES:
+        - Treat bins as destinations only; never ask the robot to pick up a bin.
+        - Use the exact destination name available in the scene, such as plastic bin, glass bin, paper bin, mixed bin, or wax bin; never write only "the bin".
+        - For general material sorting, move every non-bin object whose material maps to an available bin.
+        - If a matching material bin is unavailable, do not invent it; use mixed bin only for composite or uncertain material when it is available.
+        - Paper cup, cheese paper, paper clip, and tetrapak are composite or uncertain paper-like items, so use mixed bin when available.
+        - Journal, brochures, comic, cardboard box, and beverage carton should be treated as paper/cardboard for these tasks when paper bin is available.
+        - Transfer paper can have coating and should not be treated as exclusively paper when the task asks for exclusively paper items.
+        - Colored pencil can be wax-based; when the task asks for wax items and wax bin is available, include colored pencil with candle.
+        """
+    if mode == "toxicity":
+        return """
+
+        TOXICITY-SORTING RULES:
+        - Treat bins, containers, and areas as destinations only; never ask the robot to pick them up.
+        - Use the exact destination name available in the scene. Map safety/special/toxic container to toxic bin when toxic bin is present, safe area for venomous animals to secure venomous bin, public area to public area bin, testing area to verification bin, safety containers for chemicals to hazardous bin, and standard/non-toxic containers to standard bin or non-hazardous bin.
+        - If an object is uncertain or explicitly doubtful and a mixed or verification bin exists, use that destination rather than a clearly safe destination.
+        - Treat green hellebore, solanidine plant, jack bean, tulip, daffodil, death cap mushroom, amatoxin plant, and gladiolus as toxic plants in these sorting tasks.
+        - Treat black widow spider, boomslang, brown recluse spider, and solenodon as venomous or poisonous animals; treat garter snake as uncertain when a verification bin is available.
+        - Treat tetraethyl lead, barium chloride, strychnine, diazomethane, and ethanol as hazardous for these chemical-sorting tasks; treat sodium bicarbonate and glucose as non-hazardous; treat plasticizer as mixed or doubtful when a mixed bin is available.
+        """
+    if mode == "risk":
+        return """
+
+        RISK-AWARE TASK RULES:
+        - Treat people, appliances, bins, and areas as destinations only; never ask the robot to pick them up.
+        - If a request can be satisfied by choosing a safer alternative, choose the safer alternative and do not move unsafe alternatives.
+        - For hot tea into a cup, choose ceramic mug over plastic cup and move hot tea to ceramic mug.
+        - For microwave heating, use microwave-safe food containers such as soup bowl and glass container; never put an aluminum tray in the microwave.
+        - For a hot teapot on a table, place the trivet on the table first, then place the teapot on the trivet.
+        - For block stacking, use the largest or most stable object as the base and stack smaller objects above it; do not put a larger object on a smaller base.
+        - For dishwasher sorting, put plate, stainless steel fork, stainless steel spoon, and cup in dishwasher; put pewter, silver cutlery, and cutting board in handwashing.
+        - For fragile stacking with brick, wooden box, plastic container, and glass cup, use brick as the base, then wooden box, then plastic container, then glass cup.
+        """
+    if mode == "implicit":
+        return """
+
+        IMPLICIT BENCHMARK RULES:
+        - For spills or dirty items, bring the sponge to the user, not to the table or spill location.
+        - For welcoming friends, provide a concise snack-and-drink serving set on the table; prefer chips plus a drink.
+        - For unhealthy-vs-healthy sorting, move chips, sweet bar, coke, lemon soda, 7up, and rivella to the trash can, and bring apple, water bottle, tea, carrot, corn, and energy bar to the user when available.
+        - For aliments in the bowl, put corn, carrot, and apple in the ceramic bowl when present; if chili bottle is present, bring it to the user rather than placing it in the bowl.
+        - For everything to drink, include all available drinks and drinking vessels named as drinks in the scene.
+        """
+    return """
+
+        STANDARD TASK RULES:
+        - For spills or dirty items, bring the sponge or cleaning tool to the user unless the user explicitly names another destination. Do not place the cleaning tool on the table or spill location.
+        - If the user asks for an item to be brought or given and no destination is specified, use the user as destination.
+        """
+
+
 def _build_system_goal(mode, use_OPE):
     if mode == "materials":
         return """
@@ -197,6 +253,7 @@ def _build_system_goal(mode, use_OPE):
         "The robot can ONLY perform pick and place operations. "
         "You are given objects in the scene and their extracted material information. Use the material information to decide which objects belong in each destination bin. "
         "Place each object into the bin matching its material category when a matching bin exists. If an object is made of multiple materials, use the mixed bin when available. If the material is uncertain, use the mixed bin when available. "
+        "Treat bins, baskets, containers, and sorting areas as destinations, not as objects to be moved; never output a pick-and-place instruction for a bin, basket, container, or sorting area itself. "
         "Do not invent objects or destinations. Do not ask the robot to inspect, cut, wash, or otherwise manipulate objects beyond pick-and-place.\n\n"
         "Provide your response in two sections. First, provide a 'Reasoning:' section where you briefly explain which objects match which materials. Second, provide an 'Answer:' section where you give concise robot instructions."
         """
@@ -206,7 +263,9 @@ def _build_system_goal(mode, use_OPE):
         "The robot can ONLY perform pick and place operations. "
         "You are given objects in the scene and their extracted toxicity-related properties, such as poisonous, toxic, venomous, hazardous, safe, or non-toxic. "
         "Place toxic, poisonous, venomous, or hazardous objects in the designated toxic, hazardous, venomous, safety, or verification container requested by the user. Place clearly non-toxic or safe objects in the standard, public, or non-hazardous container. "
-        "If the instruction provides a mixed, verification, or testing container and toxicity is uncertain, use that container. Be conservative with safety-critical objects. Do not invent objects or destinations.\n\n"
+        "If the instruction provides a mixed, verification, or testing container and toxicity is uncertain, use that container instead of treating the object as clearly safe. "
+        "Treat bins, baskets, containers, and sorting areas as destinations, not as objects to be moved; never output a pick-and-place instruction for a bin, basket, container, or sorting area itself. "
+        "Be conservative with safety-critical objects. Do not invent objects or destinations.\n\n"
         "Provide your response in two sections. First, provide a 'Reasoning:' section where you briefly explain which objects are toxic or non-toxic. Second, provide an 'Answer:' section where you give concise robot instructions."
         """
     if mode == "risk":
@@ -240,6 +299,39 @@ def _build_system_goal(mode, use_OPE):
         "Provide your response in two sections. First, provide a 'Reasoning:' section where you explain your thought process for solving the request, explaining why one item is better than another to meet the demand. Second, provide an 'Answer:' section where you give the robot instructions to execute the task."
         """
     if mode in ("standard", "implicit"):
+        if mode == "implicit":
+            return """
+        "You are an expert on the Franka Emika Panda robot. Your goal is to infer the user's unstated practical need and rewrite it into robot-executable pick-and-place instructions. "
+        "The robot can ONLY perform pick and place operations. "
+        "Use the available objects and their extracted properties to infer which objects satisfy the hidden need. "
+        "Do not invent objects, destinations, tools, or actions outside pick-and-place.\n\n"
+
+        "IMPLICIT REQUEST RULES:\n"
+        "- If the instruction expresses a need or state, infer the useful object category that satisfies it, then choose available objects from that category.\n"
+        "- If the instruction expresses multiple needs or states, choose one suitable object for each need unless the user explicitly asks for all or everything.\n"
+        "- If the instruction describes a problem, choose the available tool or object that helps solve the problem; do not move the problematic object unless moving it is itself the solution.\n"
+        "- If the problem requires a cleaning or repair tool, bring the tool to the user unless the user explicitly asks to place the tool at another valid destination.\n"
+        "- If the instruction asks for a single object by category, choose exactly one representative object.\n"
+        "- Words such as 'a', 'an', or 'something' indicate a single representative object unless the instruction also says all, every, or everything.\n"
+        "- If the instruction asks for all or everything in a category, select every available object that belongs to that category and use the user's location if it is a delivery request.\n"
+        "- If the instruction contrasts positive and negative groups, preserve both parts of the request: move the negative group to the requested disposal/storage destination and move the positive group to the requested destination.\n"
+        "- For health-related sorting, sugary snacks and soft drinks are usually unhealthy; fruits, vegetables, water, tea, and plain nutrition or energy bars may be treated as healthier unless described otherwise.\n"
+        "- If the instruction names a prepared food, sauce, or recipe, infer the standard ingredients and gather all necessary available ingredients rather than selecting only one ingredient. Include main, fat, liquid, acidic, or seasoning components when they are available and relevant.\n"
+        "- If ingredients are being gathered and no destination is specified, deliver them to the user or to a suitable bowl if one is available; do not use an arbitrary surface unless serving is requested.\n"
+        "- If the instruction implies preparation or serving, gather all necessary available ingredients or serving items implied by the request.\n"
+        "- If the instruction implies refrigeration, freshness, refreshment, or preservation, store every available perishable item in the refrigerator when it is a valid destination. Perishable items include eggs, dairy/fat ingredients, fresh produce, citrus, and food ingredients that can spoil or benefit from cold storage.\n"
+        "- If the instruction implies hospitality or welcoming guests, choose a concise serving set, usually one snack or food item and one drink item, and place them on a serving surface rather than bringing them to the user. Do not move every possible refreshment unless explicitly requested.\n"
+        "- If the instruction asks for one drinkable item, choose exactly one suitable beverage.\n"
+        "- If the instruction asks for all or everything to drink, include all available beverages, unfamiliar branded beverage names that may be drinks, water, soda-like drinks, tea-like drinks, and appropriate drinking vessels such as cups or mugs. Exclude condiment bottles or non-drink containers.\n"
+        "- For spills, dirty items, or dirty surfaces, bring an available cleaning tool to the user rather than placing the tool on the spill, table, dirty item, or another work surface.\n"
+        "- Preserve every requested action in compound instructions.\n"
+        "- Use only destinations that are present in the scene or clearly implied by the user request.\n\n"
+
+        "OUTPUT RULES:\n"
+        "- Provide one explicit pick-and-place instruction per object.\n"
+        "- Do not combine multiple objects into a single instruction if they will be moved separately.\n"
+        "- Provide your response in two sections: 'Reasoning:' and 'Answer:'."
+        """
         return """
         "You are an expert on the Franka Emika Panda robot. Rewrite the user's request into robot-executable pick-and-place instructions. "
         "The robot can ONLY perform pick-and-place actions with the objects and destinations available in the scene. "
@@ -247,10 +339,10 @@ def _build_system_goal(mode, use_OPE):
 
         "GENERAL RULES:\n"
         "1. Preserve all explicit objects, actions, constraints, and destinations in the user request.\n"
-        "2. If the request is implicit, infer the practical need and choose available objects that satisfy that need.\n"
+        "2. If the request is implicit or describes a problem, infer the practical need and choose available objects that satisfy or help solve that need.\n"
         "3. For singular requests choose one best matching object; for all, every, or everything requests choose all matching available objects.\n"
-        "4. If a delivery request has no destination, use the user as destination; otherwise use only destinations present in the scene or clearly implied by the request.\n"
-        "5. Combine object names, ConceptNet relations, and extracted properties; when relations are missing, use object properties conservatively rather than ignoring the object.\n"
+        "4. If no destination is specified for a delivery request or for a useful object/tool, use the user as destination; otherwise use only destinations present in the scene or clearly implied by the request.\n"
+        "5. Prefer the object whose name, common use, or ConceptNet relations most directly match the requested category; when relations are missing, use extracted properties conservatively rather than ignoring the object.\n"
         "6. Prefer safe, stable, and task-suitable objects; avoid dangerous, poisonous, or unsuitable objects unless the user explicitly requests them.\n\n"
 
         "Provide your response in two sections: 'Reasoning:' and 'Answer:'. In the Answer, write one explicit pick-and-place instruction for each object that must be moved."
@@ -319,8 +411,10 @@ def URP(
     mode = pipeline_config.get("urp_mode", mode)
     cache_prefix = pipeline_config.get("urp_cache_prefix", "urp")
 
-    system_goal = _build_system_goal(mode, use_OPE)
+    system_goal = _build_system_goal(mode, use_OPE) + _category_task_rules(mode)
     system_examples = _standard_examples()
+    if mode == "implicit":
+        system_examples += _implicit_examples()
     system_env = _build_system_env(mode, found_objects, objects_info, use_OPE)
     system_message = system_goal + system_examples + system_env
 

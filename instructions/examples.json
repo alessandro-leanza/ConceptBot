@@ -1,0 +1,47 @@
+{
+  "category": "examples",
+  "shared_objects": [
+    "energy bar",
+    "water bottle",
+    "chips",
+    "trash can",
+    "coke",
+    "apple",
+    "table",
+    "user"
+  ],
+  "items": [
+    {
+      "id": "ex_01",
+      "instruction": "Put an energy bar and a water bottle on the table.",
+      "objects": null,
+      "gold": {
+        "sequences": [
+          [
+            "robot.pick_and_place(energy bar, table)",
+            "robot.pick_and_place(water bottle, table)",
+            "done()"
+          ]
+        ]
+      }
+    },
+    {
+      "id": "ex_02",
+      "instruction": "Can you throw away the apple and bring me a coke?",
+      "objects": null,
+      "gold": {
+        "sequences": [
+          [
+            "robot.pick_and_place(apple, trash can)",
+            "robot.pick_and_place(coke, user)",
+            "done()"
+          ]
+        ]
+      }
+    }
+  ],
+  "policy": {
+    "order_matters": false,
+    "type": "sequence"
+  }
+}

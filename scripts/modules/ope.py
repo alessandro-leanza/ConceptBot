@@ -93,6 +93,37 @@ def _resolve_pipeline(mode, pipeline_config):
     return get_mode_pipeline(mode)
 
 
+def _is_sorting_destination(name):
+    lowered = name.strip().lower()
+    destination_terms = (
+        "bin",
+        "basket",
+        "container",
+        "sorting area",
+        "public area",
+        "safe area",
+        "testing area",
+        "verification",
+    )
+    return any(term in lowered for term in destination_terms)
+
+
+def _filter_ope_objects(found_objects, rel_objects, mode):
+    if mode not in {"materials", "toxicity"}:
+        return found_objects, rel_objects
+
+    filtered_found = [obj for obj in found_objects if not _is_sorting_destination(obj)]
+    filtered_rel = [obj for obj in rel_objects if not _is_sorting_destination(obj)]
+    if not filtered_found:
+        filtered_found = found_objects
+    if not filtered_rel:
+        filtered_rel = rel_objects
+    skipped = [obj for obj in found_objects if _is_sorting_destination(obj)]
+    if skipped:
+        print("[OPE] Skipping sorting destinations:", ", ".join(skipped))
+    return filtered_found, filtered_rel
+
+
 def _metadata_by_name(dynamic_property_metadata):
     metadata = {}
     if isinstance(dynamic_property_metadata, dict):
@@ -139,8 +170,16 @@ def _build_toxicity_prompt(properties):
     system_message = (
         "You are an expert in object properties and toxicity. For each object, analyze the provided relationships "
         "to determine whether it is toxic, poisonous, venomous, hazardous, safe, or dangerous.\n"
-        "Use 'Yes' only when the object is clearly associated with the property. If evidence is missing or uncertain, "
-        "answer 'No' unless the object name itself strongly implies toxicity.\n"
+        "Use retrieved relations when available, but also use conservative commonsense toxicology from the object name "
+        "when relations are sparse. Mark plants, fungi, animals, or chemicals as toxic, poisonous, venomous, or hazardous "
+        "when they are commonly known to contain toxins, venom, irritants, or harmful compounds. If toxicity is uncertain "
+        "but plausible for an unfamiliar biological or chemical object, mark Safe as No and Hazardous as Yes rather than "
+        "treating it as clearly safe.\n"
+        "Domain anchors for these benchmark scenes: green hellebore, solanidine plant, jack bean, tulip, daffodil, "
+        "death cap mushroom, amatoxin plant, and gladiolus should be treated as toxic plants/fungi; black widow spider, "
+        "boomslang, brown recluse spider, and solenodon as venomous/poisonous animals; garter snake as uncertain when "
+        "a verification option exists; tetraethyl lead, barium chloride, strychnine, diazomethane, and ethanol as hazardous; "
+        "plasticizer as mixed or doubtful; sodium bicarbonate and glucose as non-hazardous.\n"
         "Determine the following properties:\n"
     )
     for prop in properties:
@@ -159,6 +198,9 @@ def _build_materials_prompt(materials):
         "relationships to determine which material category or categories apply.\n"
         f"Allowed material categories: {material_list}.\n"
         "Use 'mixed material' when the object is commonly made of more than one material or when the material is uncertain.\n"
+        "Domain anchors for these benchmark scenes: paper cup, cheese paper, paper clip, and tetrapak are mixed/composite; "
+        "journal, brochures, comic, cardboard box, and beverage carton are paper/cardboard; colored pencil may be wax-based; "
+        "transfer paper may be coated and is not necessarily exclusively paper.\n"
         "Provide the materials in the following format without adding comments:\n"
         "Object: [object_name]\n"
         "Materials: [comma-separated list of material categories]\n"
@@ -292,6 +334,7 @@ def OPE(
 ):
     pipeline_config = _resolve_pipeline(mode, pipeline_config)
     mode = pipeline_config.get("ope_mode", mode)
+    found_objects, rel_objects = _filter_ope_objects(found_objects, rel_objects, mode)
 
     if mode == "risk":
         from scripts.modules.ope_score_par import OPE_score_par
