@@ -5,3 +5,15 @@ cache/
 results/
 scripts/experiments/theta/results/*
 !scripts/experiments/theta/results/.gitkeep
+
+# Public/private split: keep generated public export and private artifacts local
+dist/
+external_baselines/
+scripts/experiments/**/results/
+scripts/experiments/**/old_results/
+scripts/experiments/**/*.jsonl
+scripts/experiments/**/*.log
+docs/Reviewer_*.md
+docs/*REVISION*.md
+docs/*RESPONSE*.md
+docs/*BASELINE*.md
