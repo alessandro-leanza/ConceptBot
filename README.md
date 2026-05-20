@@ -65,4 +65,6 @@ python scripts/demo.py
 
 ## Citation
 
+Paper: [ConceptBot: Knowledge-Graph–Grounded Commonsense for Task Decomposition in LLM Robot Planning](https://arxiv.org/abs/2509.00570).
+
 If you use this code, please cite the ConceptBot paper.
