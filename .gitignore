@@ -8,12 +8,10 @@ __pycache__/
 *.log
 *.jsonl
 
-# Private working-tree material not included in the public release
+# Local working files and generated experiment artifacts
 docs/
 external_baselines/
 scripts/experiments/
-PUBLIC_RELEASE.md
-README_PUBLIC.md
 scripts/tools/
 docker-compose.experiments.yml
 scripts/ConceptBot_Main.py

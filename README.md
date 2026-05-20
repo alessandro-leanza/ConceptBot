@@ -1,23 +1,20 @@
-# ConceptBot Public Release
+# ConceptBot: Knowledge-Graph–Grounded Commonsense for Task Decomposition in LLM Robot Planning
 
-ConceptBot is a modular LLM-based robot planning framework for resolving underspecified pick-and-place requests with commonsense grounding. The public release contains the core OPE, URP, and Planner modules plus a small example instruction file. Internal experiment traces, working notes, tuning runs, and vendored external baselines are intentionally excluded.
+ConceptBot is a modular LLM-based robot planning framework for resolving underspecified pick-and-place requests with commonsense grounding. The system combines knowledge-graph retrieval with language-model reasoning to infer object properties, rewrite user requests into robot-ready instructions, and generate feasible pick-and-place action sequences.
 
-## Public Scope
+## Overview
 
-Included:
-- Core modules for ConceptNet access, object-property extraction, user-request processing, and planning.
-- Minimal instruction examples for demonstrating the data schema.
-- Docker and Python dependency files for running the core code.
+ConceptBot is organized around three main stages:
 
-Excluded:
-- Full benchmark suites and gold policies.
-- Raw experiment outputs, logs, JSONL traces, and plots.
-- Working notes, draft analysis documents, and internal planning material.
-- Vendored third-party baseline repositories and their datasets.
+- **Object Properties Extraction (OPE)**: enriches detected objects with commonsense properties retrieved from ConceptNet and interpreted with an LLM.
+- **User Request Processing (URP)**: rewrites natural-language user requests into structured task descriptions for the planner.
+- **Planner**: selects feasible pick-and-place actions from the available action set and terminates with `done()` once the request is satisfied.
+
+The implementation also includes category-specific configuration for standard, material-aware, toxicity-aware, and risk-aware tasks.
 
 ## Setup
 
-Create a `.env` file from `.env.example` and set `OPENAI_API_KEY` if you run LLM-backed modules.
+Create a `.env` file from `.env.example` and set `OPENAI_API_KEY` for LLM-backed modules.
 
 ```bash
 cp .env.example .env
@@ -38,10 +35,34 @@ docker compose build
 ## Repository Layout
 
 - `scripts/modules/`: core ConceptBot modules.
-- `scripts/demo_public.py`: minimal public demo for the OPE -> URP -> Planner pipeline.
-- `instructions/examples.json`: small public example dataset showing the instruction schema.
-- `instructions/load_instructions.py`: helper for loading instruction JSON files.
+- `scripts/modules/ope.py`: Object Properties Extraction.
+- `scripts/modules/urp.py`: User Request Processing.
+- `scripts/modules/pl_vote.py`: pick-and-place planner.
+- `scripts/modules/pipeline_config.py`: category-specific OPE/URP configuration.
+- `scripts/demo.py`: minimal OPE -> URP -> Planner demo.
+- `instructions/examples.json`: compact example instruction file.
+- `instructions/load_instructions.py`: instruction loader utility.
 
-## Notes
+## Examples
 
-This public release is meant for code inspection and lightweight reproduction of the pipeline structure. Full experimental campaigns and paper-internal benchmark traces are kept private to avoid releasing raw LLM outputs and intermediate tuning artifacts.
+List available example categories:
+
+```bash
+python instructions/load_instructions.py
+```
+
+Load the included examples:
+
+```bash
+python instructions/load_instructions.py examples
+```
+
+Run the end-to-end demo:
+
+```bash
+python scripts/demo.py
+```
+
+## Citation
+
+If you use this code, please cite the ConceptBot paper.

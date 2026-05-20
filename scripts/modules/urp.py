@@ -1,6 +1,7 @@
 # moduli/urp.py
 
 import openai
+import os
 import time
 #import spacy
 import requests
@@ -26,6 +27,10 @@ use_KG_query_objects = True
 use_KG_query_request= True
 use_example = True
 use_obj_query = True
+
+
+def _verbose_prompts():
+    return os.getenv("CONCEPTBOT_VERBOSE_PROMPTS", "0") == "1"
 
 
 
@@ -195,48 +200,41 @@ def _category_task_rules(mode):
         return """
 
         MATERIAL-SORTING RULES:
-        - Treat bins as destinations only; never ask the robot to pick up a bin.
-        - Use the exact destination name available in the scene, such as plastic bin, glass bin, paper bin, mixed bin, or wax bin; never write only "the bin".
-        - For general material sorting, move every non-bin object whose material maps to an available bin.
-        - If a matching material bin is unavailable, do not invent it; use mixed bin only for composite or uncertain material when it is available.
-        - Paper cup, cheese paper, paper clip, and tetrapak are composite or uncertain paper-like items, so use mixed bin when available.
-        - Journal, brochures, comic, cardboard box, and beverage carton should be treated as paper/cardboard for these tasks when paper bin is available.
-        - Transfer paper can have coating and should not be treated as exclusively paper when the task asks for exclusively paper items.
-        - Colored pencil can be wax-based; when the task asks for wax items and wax bin is available, include colored pencil with candle.
+        - Treat bins, baskets, containers, and sorting areas as destinations only; never ask the robot to pick them up.
+        - Use exact destination names available in the scene; do not invent missing bins or categories.
+        - Move every non-destination object whose inferred material maps to an available matching destination.
+        - Use a mixed or general container for composite, coated, multi-material, or uncertain objects when such a destination is available.
+        - When the request asks for exclusive membership in a material category, include only objects with clear evidence for that material.
         """
     if mode == "toxicity":
         return """
 
         TOXICITY-SORTING RULES:
         - Treat bins, containers, and areas as destinations only; never ask the robot to pick them up.
-        - Use the exact destination name available in the scene. Map safety/special/toxic container to toxic bin when toxic bin is present, safe area for venomous animals to secure venomous bin, public area to public area bin, testing area to verification bin, safety containers for chemicals to hazardous bin, and standard/non-toxic containers to standard bin or non-hazardous bin.
-        - If an object is uncertain or explicitly doubtful and a mixed or verification bin exists, use that destination rather than a clearly safe destination.
-        - Treat green hellebore, solanidine plant, jack bean, tulip, daffodil, death cap mushroom, amatoxin plant, and gladiolus as toxic plants in these sorting tasks.
-        - Treat black widow spider, boomslang, brown recluse spider, and solenodon as venomous or poisonous animals; treat garter snake as uncertain when a verification bin is available.
-        - Treat tetraethyl lead, barium chloride, strychnine, diazomethane, and ethanol as hazardous for these chemical-sorting tasks; treat sodium bicarbonate and glucose as non-hazardous; treat plasticizer as mixed or doubtful when a mixed bin is available.
+        - Use exact destination names available in the scene; do not invent missing safety, toxic, hazardous, or non-hazardous destinations.
+        - Place objects inferred as toxic, poisonous, venomous, hazardous, or unsafe into the requested hazardous/safety destination when available.
+        - Place clearly non-toxic or safe objects into the requested standard or non-hazardous destination when available.
+        - If an object is uncertain and a mixed, testing, or verification destination exists, use that destination rather than treating the object as clearly safe.
         """
     if mode == "risk":
         return """
 
         RISK-AWARE TASK RULES:
         - Treat people, appliances, bins, and areas as destinations only; never ask the robot to pick them up.
-        - If a request can be satisfied by choosing a safer alternative, choose the safer alternative and do not move unsafe alternatives.
-        - For hot tea into a cup, choose ceramic mug over plastic cup and move hot tea to ceramic mug.
-        - For microwave heating, use microwave-safe food containers such as soup bowl and glass container; never put an aluminum tray in the microwave.
-        - For a hot teapot on a table, place the trivet on the table first, then place the teapot on the trivet.
-        - For block stacking, use the largest or most stable object as the base and stack smaller objects above it; do not put a larger object on a smaller base.
-        - For dishwasher sorting, put plate, stainless steel fork, stainless steel spoon, and cup in dishwasher; put pewter, silver cutlery, and cutting board in handwashing.
-        - For fragile stacking with brick, wooden box, plastic container, and glass cup, use brick as the base, then wooden box, then plastic container, then glass cup.
+        - If a request can be satisfied by choosing a safer suitable alternative, choose that alternative and do not move unsafe alternatives.
+        - For heat, appliances, stacking, sharp objects, fragile objects, chemicals, or object-object interactions, use the provided risk scores to avoid unsafe pairings and destinations.
+        - When ordering matters for safety, move protective or supporting objects before placing risky or fragile objects on or near them.
+        - Preserve the user's goal, but prefer plans that reduce physical harm, object damage, breakage, or unsafe interaction.
         """
     if mode == "implicit":
         return """
 
-        IMPLICIT BENCHMARK RULES:
-        - For spills or dirty items, bring the sponge to the user, not to the table or spill location.
-        - For welcoming friends, provide a concise snack-and-drink serving set on the table; prefer chips plus a drink.
-        - For unhealthy-vs-healthy sorting, move chips, sweet bar, coke, lemon soda, 7up, and rivella to the trash can, and bring apple, water bottle, tea, carrot, corn, and energy bar to the user when available.
-        - For aliments in the bowl, put corn, carrot, and apple in the ceramic bowl when present; if chili bottle is present, bring it to the user rather than placing it in the bowl.
-        - For everything to drink, include all available drinks and drinking vessels named as drinks in the scene.
+        IMPLICIT TASK RULES:
+        - For spills, dirty items, or dirty surfaces, bring an available cleaning tool to the user unless a destination is explicitly requested.
+        - For hospitality or serving requests, choose a concise set of suitable food/drink items and place them on the requested serving destination when available.
+        - For health-related sorting, use commonsense nutritional categories and preserve both positive and negative groups when both are requested.
+        - For preparation requests, gather the available ingredients or serving items that are necessary for the implied task.
+        - For requests involving drinks, include available beverages and appropriate drinking vessels only when the request asks for all or everything drinkable.
         """
     return """
 
@@ -492,8 +490,9 @@ def URP(
             system_message += f"- {relation[0]} {relation[1]} {relation[2]} (Similarity: {similarity:.2f})\n"
 
 
-    print('System Message:\n')
-    print(system_message)
+    if _verbose_prompts():
+        print('System Message:\n')
+        print(system_message)
 
     if use_request_processing:
         client = get_openai_client()
@@ -509,14 +508,16 @@ def URP(
         log_openai_call(cache_prefix, user_message, time.monotonic() - start)
         response_message = response.choices[0].message.content
 
-        print('\nResponse Message:')
-        print(response_message)
+        if _verbose_prompts():
+            print('\nResponse Message:')
+            print(response_message)
 
         reasoning = response_message.split("Reasoning:")[1].split("Answer:")[0].strip()
         answer = response_message.split("Answer:")[1].strip()
 
-        print(f"\nReasoning:\n{reasoning}\n")
-        print(f"Answer:\n{answer}\n")
+        if _verbose_prompts():
+            print(f"\nReasoning:\n{reasoning}\n")
+            print(f"Answer:\n{answer}\n")
 
     return answer
 

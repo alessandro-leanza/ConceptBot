@@ -20,6 +20,11 @@ use_proc_names = False
 use_obj_prop = True
 use_kg = True
 
+
+def _verbose_prompts():
+    return os.getenv("CONCEPTBOT_VERBOSE_PROMPTS", "0") == "1"
+
+
 # Set your OpenAI API key from environment (if provided)
 openai.api_key = os.getenv("OPENAI_API_KEY", "")
 
@@ -172,14 +177,9 @@ def _build_toxicity_prompt(properties):
         "to determine whether it is toxic, poisonous, venomous, hazardous, safe, or dangerous.\n"
         "Use retrieved relations when available, but also use conservative commonsense toxicology from the object name "
         "when relations are sparse. Mark plants, fungi, animals, or chemicals as toxic, poisonous, venomous, or hazardous "
-        "when they are commonly known to contain toxins, venom, irritants, or harmful compounds. If toxicity is uncertain "
-        "but plausible for an unfamiliar biological or chemical object, mark Safe as No and Hazardous as Yes rather than "
-        "treating it as clearly safe.\n"
-        "Domain anchors for these benchmark scenes: green hellebore, solanidine plant, jack bean, tulip, daffodil, "
-        "death cap mushroom, amatoxin plant, and gladiolus should be treated as toxic plants/fungi; black widow spider, "
-        "boomslang, brown recluse spider, and solenodon as venomous/poisonous animals; garter snake as uncertain when "
-        "a verification option exists; tetraethyl lead, barium chloride, strychnine, diazomethane, and ethanol as hazardous; "
-        "plasticizer as mixed or doubtful; sodium bicarbonate and glucose as non-hazardous.\n"
+        "when they are commonly known to contain toxins, venom, irritants, harmful compounds, or unsafe handling properties. "
+        "If toxicity is uncertain but plausible for an unfamiliar biological or chemical object, mark Safe as No and "
+        "Hazardous as Yes rather than treating it as clearly safe.\n"
         "Determine the following properties:\n"
     )
     for prop in properties:
@@ -197,10 +197,9 @@ def _build_materials_prompt(materials):
         "You are an expert in object materials and recycling categories. For each object, analyze the provided "
         "relationships to determine which material category or categories apply.\n"
         f"Allowed material categories: {material_list}.\n"
-        "Use 'mixed material' when the object is commonly made of more than one material or when the material is uncertain.\n"
-        "Domain anchors for these benchmark scenes: paper cup, cheese paper, paper clip, and tetrapak are mixed/composite; "
-        "journal, brochures, comic, cardboard box, and beverage carton are paper/cardboard; colored pencil may be wax-based; "
-        "transfer paper may be coated and is not necessarily exclusively paper.\n"
+        "Use 'mixed material' when the object is commonly made of more than one material, is composite/coated, "
+        "or when the material is uncertain from the available evidence. Prefer the most specific allowed category "
+        "only when the object name or retrieved relations support it.\n"
         "Provide the materials in the following format without adding comments:\n"
         "Object: [object_name]\n"
         "Materials: [comma-separated list of material categories]\n"
@@ -242,10 +241,11 @@ def _run_ope_prompt(found_objects, rel_objects, properties, system_message, thet
 
     user_message = "Found Objects: " + ", ".join(found_objects)
 
-    print("\nFinal system message:")
-    print(system_message)
-    print("\nUser message:")
-    print(user_message)
+    if _verbose_prompts():
+        print("\nFinal system message:")
+        print(system_message)
+        print("\nUser message:")
+        print(user_message)
 
     client = get_openai_client()
     start = time.monotonic()
@@ -261,8 +261,9 @@ def _run_ope_prompt(found_objects, rel_objects, properties, system_message, thet
 
     response_message = request.choices[0].message
     content = response_message.content
-    print("\nGPT-4o-mini Response:")
-    print(content)
+    if _verbose_prompts():
+        print("\nGPT-4o-mini Response:")
+        print(content)
     return parse_gpt_response(content)
 
 

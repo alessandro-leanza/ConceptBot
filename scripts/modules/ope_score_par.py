@@ -43,6 +43,10 @@ use_wiki = False
 # Set your OpenAI API key from environment (if provided)
 openai.api_key = os.getenv("OPENAI_API_KEY", "")
 
+
+def _verbose_prompts():
+    return os.getenv("CONCEPTBOT_VERBOSE_PROMPTS", "0") == "1"
+
 def compute_embedding(text, model="text-embedding-ada-002"):
     return get_cached_embedding(text, model=model)
 
@@ -523,10 +527,11 @@ def OPE_score_par(found_objects, rel_objects, user_request, theta=0.75, stats=No
         "\nAnalyze each object individually and determine which objects increase its danger level (only among the objects found and taking into account the user request)."
     )
 
-    print("\nFinal system message:")
-    print(system_message)
-    print("\nUser message:")
-    print(user_message)
+    if _verbose_prompts():
+        print("\nFinal system message:")
+        print(system_message)
+        print("\nUser message:")
+        print(user_message)
 
     client = get_openai_client()
     start = time.monotonic()
@@ -542,8 +547,9 @@ def OPE_score_par(found_objects, rel_objects, user_request, theta=0.75, stats=No
 
     response_message = request.choices[0].message
     content = response_message.content
-    print("\nGPT-4o-mini Response:")
-    print(content)
+    if _verbose_prompts():
+        print("\nGPT-4o-mini Response:")
+        print(content)
     objects_info = parse_gpt_response_with_context(content)
     return objects_info
 

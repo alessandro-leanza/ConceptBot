@@ -1,6 +1,6 @@
 # Instructions Examples
 
-The public release includes a small example instruction file, `examples.json`, to document the benchmark schema without releasing the full internal benchmark suite.
+This directory includes `examples.json`, a compact instruction file that documents the benchmark schema used by the loader and demo utilities.
 
 ## Schema
 
