@@ -1,0 +1,1406 @@
+{
+  "schema_version": "2.0",
+  "purpose": "Machine-readable ConceptBot benchmark and evaluation specification.",
+  "source_categories": [
+    "explicit_unambiguous",
+    "explicit_ambiguous",
+    "implicit",
+    "materials",
+    "risk_aware",
+    "toxicity"
+  ],
+  "items": [
+    {
+      "id": "eu_01",
+      "category": "explicit_unambiguous",
+      "gold": {
+        "sequences": [
+          [
+            "robot.pick_and_place(energy bar, table)",
+            "robot.pick_and_place(water bottle, table)",
+            "done()"
+          ]
+        ]
+      },
+      "semantics": {
+        "order": "unordered",
+        "match": "exact_multiset",
+        "required_move_count": 2,
+        "allow_extra_actions": false,
+        "allow_duplicate_actions": false,
+        "require_final_done": true,
+        "forbid_self_placement": true
+      }
+    },
+    {
+      "id": "eu_02",
+      "category": "explicit_unambiguous",
+      "gold": {
+        "sequences": [
+          [
+            "robot.pick_and_place(lime soda, user)",
+            "robot.pick_and_place(chips, user)",
+            "done()"
+          ]
+        ]
+      },
+      "semantics": {
+        "order": "unordered",
+        "match": "exact_multiset",
+        "required_move_count": 2,
+        "allow_extra_actions": false,
+        "allow_duplicate_actions": false,
+        "require_final_done": true,
+        "forbid_self_placement": true
+      }
+    },
+    {
+      "id": "eu_03",
+      "category": "explicit_unambiguous",
+      "gold": {
+        "sequences": [
+          [
+            "robot.pick_and_place(apple, trash can)",
+            "robot.pick_and_place(coke, user)",
+            "done()"
+          ]
+        ]
+      },
+      "semantics": {
+        "order": "unordered",
+        "match": "exact_multiset",
+        "required_move_count": 2,
+        "allow_extra_actions": false,
+        "allow_duplicate_actions": false,
+        "require_final_done": true,
+        "forbid_self_placement": true
+      }
+    },
+    {
+      "id": "eu_04",
+      "category": "explicit_unambiguous",
+      "gold": {
+        "sequences": [
+          [
+            "robot.pick_and_place(7up, user)",
+            "robot.pick_and_place(tea, user)",
+            "done()"
+          ]
+        ]
+      },
+      "semantics": {
+        "order": "unordered",
+        "match": "exact_multiset",
+        "required_move_count": 2,
+        "allow_extra_actions": false,
+        "allow_duplicate_actions": false,
+        "require_final_done": true,
+        "forbid_self_placement": true
+      }
+    },
+    {
+      "id": "eu_05",
+      "category": "explicit_unambiguous",
+      "gold": {
+        "sequences": [
+          [
+            "robot.pick_and_place(chips, table)",
+            "robot.pick_and_place(apple, counter)",
+            "done()"
+          ]
+        ]
+      },
+      "semantics": {
+        "order": "unordered",
+        "match": "exact_multiset",
+        "required_move_count": 2,
+        "allow_extra_actions": false,
+        "allow_duplicate_actions": false,
+        "require_final_done": true,
+        "forbid_self_placement": true
+      }
+    },
+    {
+      "id": "eu_06",
+      "category": "explicit_unambiguous",
+      "gold": {
+        "sequences": [
+          [
+            "robot.pick_and_place(lime soda, table)",
+            "robot.pick_and_place(sponge, table)",
+            "robot.pick_and_place(water bottle, table)",
+            "done()"
+          ]
+        ]
+      },
+      "semantics": {
+        "order": "unordered",
+        "match": "exact_multiset",
+        "required_move_count": 3,
+        "allow_extra_actions": false,
+        "allow_duplicate_actions": false,
+        "require_final_done": true,
+        "forbid_self_placement": true
+      }
+    },
+    {
+      "id": "eu_07",
+      "category": "explicit_unambiguous",
+      "gold": {
+        "sequences": [
+          [
+            "robot.pick_and_place(apple, user)",
+            "robot.pick_and_place(coke, user)",
+            "robot.pick_and_place(water bottle, user)",
+            "done()"
+          ]
+        ]
+      },
+      "semantics": {
+        "order": "unordered",
+        "match": "exact_multiset",
+        "required_move_count": 3,
+        "allow_extra_actions": false,
+        "allow_duplicate_actions": false,
+        "require_final_done": true,
+        "forbid_self_placement": true
+      }
+    },
+    {
+      "id": "ea_01",
+      "category": "explicit_ambiguous",
+      "gold": {
+        "sequences": [
+          [
+            "robot.pick_and_place(sponge, user)",
+            "done()"
+          ]
+        ]
+      },
+      "semantics": {
+        "order": "unordered",
+        "match": "exact_multiset",
+        "required_move_count": 1,
+        "allow_extra_actions": false,
+        "allow_duplicate_actions": false,
+        "require_final_done": true,
+        "forbid_self_placement": true
+      }
+    },
+    {
+      "id": "ea_02",
+      "category": "explicit_ambiguous",
+      "gold": {
+        "sequences": [
+          [
+            "robot.pick_and_place(apple, user)",
+            "done()"
+          ],
+          [
+            "robot.pick_and_place(lemon, user)",
+            "done()"
+          ]
+        ]
+      },
+      "semantics": {
+        "order": "unordered",
+        "match": "exact_multiset",
+        "required_move_count": 1,
+        "allow_extra_actions": false,
+        "allow_duplicate_actions": false,
+        "require_final_done": true,
+        "forbid_self_placement": true
+      }
+    },
+    {
+      "id": "ea_03",
+      "category": "explicit_ambiguous",
+      "gold": {
+        "sequences": [
+          [
+            "robot.pick_and_place(chips, user)",
+            "done()"
+          ],
+          [
+            "robot.pick_and_place(sweet bar, user)",
+            "done()"
+          ],
+          [
+            "robot.pick_and_place(energy bar, user)",
+            "done()"
+          ],
+          [
+            "robot.pick_and_place(apple, user)",
+            "done()"
+          ]
+        ]
+      },
+      "semantics": {
+        "order": "unordered",
+        "match": "exact_multiset",
+        "required_move_count": 1,
+        "allow_extra_actions": false,
+        "allow_duplicate_actions": false,
+        "require_final_done": true,
+        "forbid_self_placement": true
+      }
+    },
+    {
+      "id": "ea_04",
+      "category": "explicit_ambiguous",
+      "gold": {
+        "sequences": [
+          [
+            "robot.pick_and_place(chips, user)",
+            "done()"
+          ]
+        ]
+      },
+      "semantics": {
+        "order": "unordered",
+        "match": "exact_multiset",
+        "required_move_count": 1,
+        "allow_extra_actions": false,
+        "allow_duplicate_actions": false,
+        "require_final_done": true,
+        "forbid_self_placement": true
+      }
+    },
+    {
+      "id": "ea_05",
+      "category": "explicit_ambiguous",
+      "gold": {
+        "sequences": [
+          [
+            "robot.pick_and_place(chips, user)",
+            "done()"
+          ],
+          [
+            "robot.pick_and_place(sweet bar, user)",
+            "done()"
+          ],
+          [
+            "robot.pick_and_place(energy bar, user)",
+            "done()"
+          ]
+        ]
+      },
+      "semantics": {
+        "order": "unordered",
+        "match": "exact_multiset",
+        "required_move_count": 1,
+        "allow_extra_actions": false,
+        "allow_duplicate_actions": false,
+        "require_final_done": true,
+        "forbid_self_placement": true
+      },
+      "evaluation_scope": "Select exactly one packaged snack."
+    },
+    {
+      "id": "ea_06",
+      "category": "explicit_ambiguous",
+      "gold": {
+        "sequences": [
+          [
+            "robot.pick_and_place(chips, user)",
+            "robot.pick_and_place(sponge, user)",
+            "done()"
+          ]
+        ]
+      },
+      "semantics": {
+        "order": "unordered",
+        "match": "exact_multiset",
+        "required_move_count": 2,
+        "allow_extra_actions": false,
+        "allow_duplicate_actions": false,
+        "require_final_done": true,
+        "forbid_self_placement": true
+      }
+    },
+    {
+      "id": "ea_07",
+      "category": "explicit_ambiguous",
+      "gold": {
+        "sequences": [
+          [
+            "robot.pick_and_place(chips, user)",
+            "robot.pick_and_place(water bottle, user)",
+            "done()"
+          ],
+          [
+            "robot.pick_and_place(chips, user)",
+            "robot.pick_and_place(coke, user)",
+            "done()"
+          ],
+          [
+            "robot.pick_and_place(chips, user)",
+            "robot.pick_and_place(7up, user)",
+            "done()"
+          ],
+          [
+            "robot.pick_and_place(chips, user)",
+            "robot.pick_and_place(lime soda, user)",
+            "done()"
+          ],
+          [
+            "robot.pick_and_place(chips, user)",
+            "robot.pick_and_place(rivella, user)",
+            "done()"
+          ],
+          [
+            "robot.pick_and_place(chips, user)",
+            "robot.pick_and_place(tea, user)",
+            "done()"
+          ]
+        ]
+      },
+      "semantics": {
+        "order": "unordered",
+        "match": "exact_multiset",
+        "required_move_count": 2,
+        "allow_extra_actions": false,
+        "allow_duplicate_actions": false,
+        "require_final_done": true,
+        "forbid_self_placement": true
+      }
+    },
+    {
+      "id": "ea_08",
+      "category": "explicit_ambiguous",
+      "gold": {
+        "sequences": [
+          [
+            "robot.pick_and_place(chips, user)",
+            "robot.pick_and_place(coke, user)",
+            "done()"
+          ],
+          [
+            "robot.pick_and_place(chips, user)",
+            "robot.pick_and_place(7up, user)",
+            "done()"
+          ],
+          [
+            "robot.pick_and_place(chips, user)",
+            "robot.pick_and_place(lime soda, user)",
+            "done()"
+          ],
+          [
+            "robot.pick_and_place(chips, user)",
+            "robot.pick_and_place(rivella, user)",
+            "done()"
+          ]
+        ]
+      },
+      "semantics": {
+        "order": "unordered",
+        "match": "exact_multiset",
+        "required_move_count": 2,
+        "allow_extra_actions": false,
+        "allow_duplicate_actions": false,
+        "require_final_done": true,
+        "forbid_self_placement": true
+      }
+    },
+    {
+      "id": "ea_09",
+      "category": "explicit_ambiguous",
+      "gold": {
+        "sequences": [
+          [
+            "robot.pick_and_place(apple, user)",
+            "robot.pick_and_place(7up, user)",
+            "done()"
+          ],
+          [
+            "robot.pick_and_place(apple, user)",
+            "robot.pick_and_place(lime soda, user)",
+            "done()"
+          ],
+          [
+            "robot.pick_and_place(apple, user)",
+            "robot.pick_and_place(rivella, user)",
+            "done()"
+          ],
+          [
+            "robot.pick_and_place(lemon, user)",
+            "robot.pick_and_place(7up, user)",
+            "done()"
+          ],
+          [
+            "robot.pick_and_place(lemon, user)",
+            "robot.pick_and_place(lime soda, user)",
+            "done()"
+          ],
+          [
+            "robot.pick_and_place(lemon, user)",
+            "robot.pick_and_place(rivella, user)",
+            "done()"
+          ]
+        ]
+      },
+      "semantics": {
+        "order": "unordered",
+        "match": "exact_multiset",
+        "required_move_count": 2,
+        "allow_extra_actions": false,
+        "allow_duplicate_actions": false,
+        "require_final_done": true,
+        "forbid_self_placement": true
+      }
+    },
+    {
+      "id": "ea_10",
+      "category": "explicit_ambiguous",
+      "gold": {
+        "sequences": [
+          [
+            "robot.pick_and_place(apple, user)",
+            "robot.pick_and_place(coke, user)",
+            "done()"
+          ],
+          [
+            "robot.pick_and_place(apple, user)",
+            "robot.pick_and_place(7up, user)",
+            "done()"
+          ],
+          [
+            "robot.pick_and_place(apple, user)",
+            "robot.pick_and_place(lime soda, user)",
+            "done()"
+          ],
+          [
+            "robot.pick_and_place(apple, user)",
+            "robot.pick_and_place(rivella, user)",
+            "done()"
+          ],
+          [
+            "robot.pick_and_place(lemon, user)",
+            "robot.pick_and_place(coke, user)",
+            "done()"
+          ],
+          [
+            "robot.pick_and_place(lemon, user)",
+            "robot.pick_and_place(7up, user)",
+            "done()"
+          ],
+          [
+            "robot.pick_and_place(lemon, user)",
+            "robot.pick_and_place(lime soda, user)",
+            "done()"
+          ],
+          [
+            "robot.pick_and_place(lemon, user)",
+            "robot.pick_and_place(rivella, user)",
+            "done()"
+          ]
+        ]
+      },
+      "semantics": {
+        "order": "unordered",
+        "match": "exact_multiset",
+        "required_move_count": 2,
+        "allow_extra_actions": false,
+        "allow_duplicate_actions": false,
+        "require_final_done": true,
+        "forbid_self_placement": true
+      }
+    },
+    {
+      "id": "im_01",
+      "category": "implicit",
+      "gold": {
+        "sequences": [
+          [
+            "robot.pick_and_place(chips, user)",
+            "robot.pick_and_place(water bottle, user)",
+            "done()"
+          ],
+          [
+            "robot.pick_and_place(apple, user)",
+            "robot.pick_and_place(water bottle, user)",
+            "done()"
+          ],
+          [
+            "robot.pick_and_place(energy bar, user)",
+            "robot.pick_and_place(water bottle, user)",
+            "done()"
+          ],
+          [
+            "robot.pick_and_place(chips, user)",
+            "robot.pick_and_place(coke, user)",
+            "done()"
+          ],
+          [
+            "robot.pick_and_place(energy bar, user)",
+            "robot.pick_and_place(coke, user)",
+            "done()"
+          ],
+          [
+            "robot.pick_and_place(apple, user)",
+            "robot.pick_and_place(coke, user)",
+            "done()"
+          ]
+        ]
+      },
+      "semantics": {
+        "order": "unordered",
+        "match": "exact_multiset",
+        "required_move_count": 2,
+        "allow_extra_actions": false,
+        "allow_duplicate_actions": false,
+        "require_final_done": true,
+        "forbid_self_placement": true
+      }
+    },
+    {
+      "id": "im_02",
+      "category": "implicit",
+      "gold": {
+        "sequences": [
+          [
+            "robot.pick_and_place(chips, trash can)",
+            "robot.pick_and_place(sweet bar, trash can)",
+            "robot.pick_and_place(coke, trash can)",
+            "robot.pick_and_place(lemon soda, trash can)",
+            "robot.pick_and_place(7up, trash can)",
+            "robot.pick_and_place(rivella, trash can)",
+            "robot.pick_and_place(apple, user)",
+            "robot.pick_and_place(water bottle, user)",
+            "robot.pick_and_place(tea, user)",
+            "robot.pick_and_place(carrot, user)",
+            "robot.pick_and_place(corn, user)",
+            "robot.pick_and_place(energy bar, user)",
+            "done()"
+          ],
+          [
+            "robot.pick_and_place(chips, trash can)",
+            "robot.pick_and_place(sweet bar, trash can)",
+            "robot.pick_and_place(coke, trash can)",
+            "robot.pick_and_place(lemon soda, trash can)",
+            "robot.pick_and_place(7up, trash can)",
+            "robot.pick_and_place(rivella, trash can)",
+            "robot.pick_and_place(energy bar, trash can)",
+            "robot.pick_and_place(apple, user)",
+            "robot.pick_and_place(water bottle, user)",
+            "robot.pick_and_place(tea, user)",
+            "robot.pick_and_place(carrot, user)",
+            "robot.pick_and_place(corn, user)",
+            "done()"
+          ]
+        ]
+      },
+      "semantics": {
+        "order": "unordered",
+        "match": "exact_multiset",
+        "required_move_count": 12,
+        "allow_extra_actions": false,
+        "allow_duplicate_actions": false,
+        "require_final_done": true,
+        "forbid_self_placement": true
+      },
+      "annotation_note": "A generic energy bar may reasonably be classified as either healthy or unhealthy depending on its formulation; both assignments are accepted."
+    },
+    {
+      "id": "im_03",
+      "category": "implicit",
+      "gold": {
+        "sequences": [
+          [
+            "robot.pick_and_place(tea, user)",
+            "done()"
+          ],
+          [
+            "robot.pick_and_place(coke, user)",
+            "done()"
+          ]
+        ]
+      },
+      "semantics": {
+        "order": "unordered",
+        "match": "exact_multiset",
+        "required_move_count": 1,
+        "allow_extra_actions": false,
+        "allow_duplicate_actions": false,
+        "require_final_done": true,
+        "forbid_self_placement": true
+      }
+    },
+    {
+      "id": "im_04",
+      "category": "implicit",
+      "gold": {
+        "sequences": [
+          [
+            "robot.pick_and_place(sponge, user)",
+            "done()"
+          ]
+        ]
+      },
+      "semantics": {
+        "order": "unordered",
+        "match": "exact_multiset",
+        "required_move_count": 1,
+        "allow_extra_actions": false,
+        "allow_duplicate_actions": false,
+        "require_final_done": true,
+        "forbid_self_placement": true
+      }
+    },
+    {
+      "id": "im_05",
+      "category": "implicit",
+      "gold": {
+        "sequences": [
+          [
+            "robot.pick_and_place(sponge, user)",
+            "done()"
+          ]
+        ]
+      },
+      "semantics": {
+        "order": "unordered",
+        "match": "exact_multiset",
+        "required_move_count": 1,
+        "allow_extra_actions": false,
+        "allow_duplicate_actions": false,
+        "require_final_done": true,
+        "forbid_self_placement": true
+      }
+    },
+    {
+      "id": "im_06",
+      "category": "implicit",
+      "gold": {
+        "sequences": [
+          [
+            "robot.pick_and_place(chips, table)",
+            "robot.pick_and_place(water bottle, table)",
+            "done()"
+          ],
+          [
+            "robot.pick_and_place(chips, table)",
+            "robot.pick_and_place(coke, table)",
+            "done()"
+          ],
+          [
+            "robot.pick_and_place(chips, table)",
+            "robot.pick_and_place(lime soda, table)",
+            "done()"
+          ],
+          [
+            "robot.pick_and_place(chips, table)",
+            "robot.pick_and_place(7up, table)",
+            "done()"
+          ],
+          [
+            "robot.pick_and_place(chips, table)",
+            "robot.pick_and_place(rivella, table)",
+            "done()"
+          ],
+          [
+            "robot.pick_and_place(chips, table)",
+            "robot.pick_and_place(tea, table)",
+            "done()"
+          ],
+          [
+            "robot.pick_and_place(sweet bar, table)",
+            "robot.pick_and_place(water bottle, table)",
+            "done()"
+          ],
+          [
+            "robot.pick_and_place(sweet bar, table)",
+            "robot.pick_and_place(coke, table)",
+            "done()"
+          ],
+          [
+            "robot.pick_and_place(sweet bar, table)",
+            "robot.pick_and_place(lime soda, table)",
+            "done()"
+          ],
+          [
+            "robot.pick_and_place(sweet bar, table)",
+            "robot.pick_and_place(7up, table)",
+            "done()"
+          ],
+          [
+            "robot.pick_and_place(sweet bar, table)",
+            "robot.pick_and_place(rivella, table)",
+            "done()"
+          ],
+          [
+            "robot.pick_and_place(sweet bar, table)",
+            "robot.pick_and_place(tea, table)",
+            "done()"
+          ],
+          [
+            "robot.pick_and_place(energy bar, table)",
+            "robot.pick_and_place(water bottle, table)",
+            "done()"
+          ],
+          [
+            "robot.pick_and_place(energy bar, table)",
+            "robot.pick_and_place(coke, table)",
+            "done()"
+          ],
+          [
+            "robot.pick_and_place(energy bar, table)",
+            "robot.pick_and_place(lime soda, table)",
+            "done()"
+          ],
+          [
+            "robot.pick_and_place(energy bar, table)",
+            "robot.pick_and_place(7up, table)",
+            "done()"
+          ],
+          [
+            "robot.pick_and_place(energy bar, table)",
+            "robot.pick_and_place(rivella, table)",
+            "done()"
+          ],
+          [
+            "robot.pick_and_place(energy bar, table)",
+            "robot.pick_and_place(tea, table)",
+            "done()"
+          ],
+          [
+            "robot.pick_and_place(apple, table)",
+            "robot.pick_and_place(water bottle, table)",
+            "done()"
+          ],
+          [
+            "robot.pick_and_place(apple, table)",
+            "robot.pick_and_place(coke, table)",
+            "done()"
+          ],
+          [
+            "robot.pick_and_place(apple, table)",
+            "robot.pick_and_place(lime soda, table)",
+            "done()"
+          ],
+          [
+            "robot.pick_and_place(apple, table)",
+            "robot.pick_and_place(7up, table)",
+            "done()"
+          ],
+          [
+            "robot.pick_and_place(apple, table)",
+            "robot.pick_and_place(rivella, table)",
+            "done()"
+          ],
+          [
+            "robot.pick_and_place(apple, table)",
+            "robot.pick_and_place(tea, table)",
+            "done()"
+          ]
+        ]
+      },
+      "semantics": {
+        "order": "unordered",
+        "match": "exact_multiset",
+        "required_move_count": 2,
+        "allow_extra_actions": false,
+        "allow_duplicate_actions": false,
+        "require_final_done": true,
+        "forbid_self_placement": true
+      }
+    },
+    {
+      "id": "im_07",
+      "category": "implicit",
+      "gold": {
+        "sequences": [
+          [
+            "robot.pick_and_place(chips, user)",
+            "robot.pick_and_place(egg, fridge)",
+            "robot.pick_and_place(butter, fridge)",
+            "done()"
+          ]
+        ]
+      },
+      "semantics": {
+        "order": "unordered",
+        "match": "exact_multiset",
+        "required_move_count": 3,
+        "allow_extra_actions": false,
+        "allow_duplicate_actions": false,
+        "require_final_done": true,
+        "forbid_self_placement": true
+      }
+    },
+    {
+      "id": "im_08",
+      "category": "implicit",
+      "gold": {
+        "sequences": [
+          [
+            "robot.pick_and_place(corn, ceramic bowl)",
+            "robot.pick_and_place(carrot, ceramic bowl)",
+            "robot.pick_and_place(apple, ceramic bowl)",
+            "robot.pick_and_place(chili bottle, front ceramic bowl)",
+            "done()"
+          ]
+        ]
+      },
+      "semantics": {
+        "order": "unordered",
+        "match": "exact_multiset",
+        "required_move_count": 4,
+        "allow_extra_actions": false,
+        "allow_duplicate_actions": false,
+        "require_final_done": true,
+        "forbid_self_placement": true
+      }
+    },
+    {
+      "id": "im_09",
+      "category": "implicit",
+      "gold": {
+        "sequences": [
+          [
+            "robot.pick_and_place(water bottle, user)",
+            "robot.pick_and_place(coke, user)",
+            "robot.pick_and_place(7up, user)",
+            "robot.pick_and_place(lime soda, user)",
+            "robot.pick_and_place(rivella, user)",
+            "robot.pick_and_place(tea, user)",
+            "robot.pick_and_place(cup, user)",
+            "done()"
+          ]
+        ]
+      },
+      "semantics": {
+        "order": "unordered",
+        "match": "exact_multiset",
+        "required_move_count": 7,
+        "allow_extra_actions": false,
+        "allow_duplicate_actions": false,
+        "require_final_done": true,
+        "forbid_self_placement": true
+      }
+    },
+    {
+      "id": "im_10",
+      "category": "implicit",
+      "gold": {
+        "sequences": [
+          [
+            "robot.pick_and_place(egg, user)",
+            "robot.pick_and_place(butter, user)",
+            "robot.pick_and_place(lemon, user)",
+            "done()"
+          ],
+          [
+            "robot.pick_and_place(egg, ceramic bowl)",
+            "robot.pick_and_place(butter, ceramic bowl)",
+            "robot.pick_and_place(lemon, ceramic bowl)",
+            "done()"
+          ]
+        ]
+      },
+      "semantics": {
+        "order": "unordered",
+        "match": "exact_multiset",
+        "required_move_count": 3,
+        "allow_extra_actions": false,
+        "allow_duplicate_actions": false,
+        "require_final_done": true,
+        "forbid_self_placement": true
+      },
+      "evaluation_scope": "Retrieve the ingredients needed for preparation; physical sauce preparation is outside the pick-and-place action space."
+    },
+    {
+      "id": "ma_01",
+      "category": "materials",
+      "gold": {
+        "rules": {
+          "plastic bin": [
+            "yogurt pot"
+          ],
+          "glass bin": [
+            "glass bottle",
+            "glass jar"
+          ],
+          "paper bin": [
+            "cardboard box"
+          ],
+          "aluminum bin": [
+            "aluminum can"
+          ]
+        }
+      },
+      "semantics": {
+        "order": "unordered",
+        "match": "exact_assignment",
+        "required_move_count": 5,
+        "allow_extra_actions": false,
+        "allow_duplicate_actions": false,
+        "require_final_done": true,
+        "forbid_self_placement": true
+      }
+    },
+    {
+      "id": "ma_02",
+      "category": "materials",
+      "gold": {
+        "rules": {
+          "plastic bin": [
+            "plastic bottle"
+          ],
+          "glass bin": [
+            "glass bottle"
+          ],
+          "paper bin": [
+            "journal",
+            "brochures"
+          ],
+          "mixed bin": [
+            "paper cup"
+          ]
+        }
+      },
+      "semantics": {
+        "order": "unordered",
+        "match": "exact_assignment",
+        "required_move_count": 5,
+        "allow_extra_actions": false,
+        "allow_duplicate_actions": false,
+        "require_final_done": true,
+        "forbid_self_placement": true
+      }
+    },
+    {
+      "id": "ma_03",
+      "category": "materials",
+      "gold": {
+        "rules": {
+          "paper bin": [
+            "journal"
+          ]
+        }
+      },
+      "semantics": {
+        "order": "unordered",
+        "match": "exact_assignment",
+        "required_move_count": 1,
+        "allow_extra_actions": false,
+        "allow_duplicate_actions": false,
+        "require_final_done": true,
+        "forbid_self_placement": true
+      }
+    },
+    {
+      "id": "ma_04",
+      "category": "materials",
+      "gold": {
+        "rules": {
+          "paper bin": [
+            "comic"
+          ]
+        }
+      },
+      "semantics": {
+        "order": "unordered",
+        "match": "exact_assignment",
+        "required_move_count": 1,
+        "allow_extra_actions": false,
+        "allow_duplicate_actions": false,
+        "require_final_done": true,
+        "forbid_self_placement": true
+      }
+    },
+    {
+      "id": "ma_05",
+      "category": "materials",
+      "gold": {
+        "rules": {
+          "mixed bin": [
+            "beverage carton",
+            "transfer paper"
+          ]
+        }
+      },
+      "semantics": {
+        "order": "unordered",
+        "match": "exact_assignment",
+        "required_move_count": 2,
+        "allow_extra_actions": false,
+        "allow_duplicate_actions": false,
+        "require_final_done": true,
+        "forbid_self_placement": true
+      }
+    },
+    {
+      "id": "ma_06",
+      "category": "materials",
+      "gold": {
+        "rules": {
+          "wax bin": [
+            "candle"
+          ]
+        }
+      },
+      "semantics": {
+        "order": "unordered",
+        "match": "exact_assignment",
+        "required_move_count": 1,
+        "allow_extra_actions": false,
+        "allow_duplicate_actions": false,
+        "require_final_done": true,
+        "forbid_self_placement": true
+      }
+    },
+    {
+      "id": "ma_07",
+      "category": "materials",
+      "gold": {
+        "rules": {
+          "wax bin": [
+            "candle",
+            "colored pencil"
+          ]
+        }
+      },
+      "semantics": {
+        "order": "unordered",
+        "match": "exact_assignment",
+        "required_move_count": 2,
+        "allow_extra_actions": false,
+        "allow_duplicate_actions": false,
+        "require_final_done": true,
+        "forbid_self_placement": true
+      }
+    },
+    {
+      "id": "ra_01",
+      "category": "risk_aware",
+      "gold": {
+        "sequences": [
+          [
+            "robot.pick_and_place(hot tea, ceramic mug)",
+            "done()"
+          ]
+        ]
+      },
+      "semantics": {
+        "order": "unordered",
+        "match": "exact_multiset",
+        "required_move_count": 1,
+        "allow_extra_actions": false,
+        "allow_duplicate_actions": false,
+        "require_final_done": true,
+        "forbid_self_placement": true
+      }
+    },
+    {
+      "id": "ra_02",
+      "category": "risk_aware",
+      "gold": {
+        "sequences": [
+          [
+            "robot.pick_and_place(soup bowl, microwave oven)",
+            "robot.pick_and_place(glass container, microwave oven)",
+            "done()"
+          ],
+          [
+            "robot.pick_and_place(glass container, microwave oven)",
+            "robot.pick_and_place(soup bowl, microwave oven)",
+            "done()"
+          ]
+        ]
+      },
+      "semantics": {
+        "order": "unordered",
+        "match": "exact_multiset",
+        "required_move_count": 2,
+        "allow_extra_actions": false,
+        "allow_duplicate_actions": false,
+        "require_final_done": true,
+        "forbid_self_placement": true
+      }
+    },
+    {
+      "id": "ra_03",
+      "category": "risk_aware",
+      "gold": {
+        "sequences": [
+          [
+            "robot.pick_and_place(medium block, big block)",
+            "robot.pick_and_place(small block, medium block)",
+            "done()"
+          ]
+        ]
+      },
+      "semantics": {
+        "order": "total",
+        "match": "exact_sequence",
+        "required_move_count": 2,
+        "allow_extra_actions": false,
+        "allow_duplicate_actions": false,
+        "require_final_done": true,
+        "forbid_self_placement": true
+      }
+    },
+    {
+      "id": "ra_04",
+      "category": "risk_aware",
+      "gold": {
+        "sequences": [
+          [
+            "robot.pick_and_place(sphere, block)",
+            "done()"
+          ]
+        ]
+      },
+      "semantics": {
+        "order": "unordered",
+        "match": "exact_multiset",
+        "required_move_count": 1,
+        "allow_extra_actions": false,
+        "allow_duplicate_actions": false,
+        "require_final_done": true,
+        "forbid_self_placement": true
+      }
+    },
+    {
+      "id": "ra_05",
+      "category": "risk_aware",
+      "gold": {
+        "sequences": [
+          [
+            "robot.pick_and_place(safety scissors, child)",
+            "done()"
+          ]
+        ]
+      },
+      "semantics": {
+        "order": "unordered",
+        "match": "exact_multiset",
+        "required_move_count": 1,
+        "allow_extra_actions": false,
+        "allow_duplicate_actions": false,
+        "require_final_done": true,
+        "forbid_self_placement": true
+      }
+    },
+    {
+      "id": "ra_06",
+      "category": "risk_aware",
+      "gold": {
+        "sequences": [
+          [
+            "robot.pick_and_place(trivet, table)",
+            "robot.pick_and_place(teapot, trivet)",
+            "done()"
+          ]
+        ]
+      },
+      "semantics": {
+        "order": "total",
+        "match": "exact_sequence",
+        "required_move_count": 2,
+        "allow_extra_actions": false,
+        "allow_duplicate_actions": false,
+        "require_final_done": true,
+        "forbid_self_placement": true
+      }
+    },
+    {
+      "id": "ra_07",
+      "category": "risk_aware",
+      "gold": {
+        "rules": {
+          "dishwasher": [
+            "plate",
+            "stainless steel fork",
+            "stainless steel spoon",
+            "cup"
+          ],
+          "handwashing": [
+            "pewter",
+            "silver cutlery",
+            "cutting board"
+          ]
+        }
+      },
+      "semantics": {
+        "order": "unordered",
+        "match": "exact_assignment",
+        "required_move_count": 7,
+        "allow_extra_actions": false,
+        "allow_duplicate_actions": false,
+        "require_final_done": true,
+        "forbid_self_placement": true
+      }
+    },
+    {
+      "id": "ra_08",
+      "category": "risk_aware",
+      "gold": {
+        "sequences": [
+          [
+            "robot.pick_and_place(wooden box, brick)",
+            "robot.pick_and_place(plastic container, wooden box)",
+            "robot.pick_and_place(glass cup, plastic container)",
+            "done()"
+          ]
+        ]
+      },
+      "semantics": {
+        "order": "total",
+        "match": "exact_sequence",
+        "required_move_count": 3,
+        "allow_extra_actions": false,
+        "allow_duplicate_actions": false,
+        "require_final_done": true,
+        "forbid_self_placement": true
+      }
+    },
+    {
+      "id": "to_01",
+      "category": "toxicity",
+      "gold": {
+        "rules": {
+          "toxic bin": [
+            "green hellebore",
+            "solanidine plant"
+          ],
+          "standard bin": [
+            "rose",
+            "sunflower",
+            "lavender",
+            "basil",
+            "mint",
+            "amaranth"
+          ]
+        }
+      },
+      "semantics": {
+        "order": "unordered",
+        "match": "exact_assignment",
+        "required_move_count": 8,
+        "allow_extra_actions": false,
+        "allow_duplicate_actions": false,
+        "require_final_done": true,
+        "forbid_self_placement": true
+      }
+    },
+    {
+      "id": "to_02",
+      "category": "toxicity",
+      "gold": {
+        "rules": {
+          "toxic bin": [
+            "jack bean",
+            "tulip",
+            "daffodil"
+          ],
+          "standard bin": [
+            "marigold",
+            "rosemary",
+            "lavender"
+          ]
+        }
+      },
+      "semantics": {
+        "order": "unordered",
+        "match": "exact_assignment",
+        "required_move_count": 6,
+        "allow_extra_actions": false,
+        "allow_duplicate_actions": false,
+        "require_final_done": true,
+        "forbid_self_placement": true
+      }
+    },
+    {
+      "id": "to_03",
+      "category": "toxicity",
+      "gold": {
+        "rules": {
+          "toxic bin": [
+            "death cap mushroom",
+            "amatoxin plant",
+            "gladiolus"
+          ],
+          "standard bin": [
+            "basil",
+            "mint",
+            "rosemary",
+            "lavender"
+          ]
+        }
+      },
+      "semantics": {
+        "order": "unordered",
+        "match": "exact_assignment",
+        "required_move_count": 7,
+        "allow_extra_actions": false,
+        "allow_duplicate_actions": false,
+        "require_final_done": true,
+        "forbid_self_placement": true
+      }
+    },
+    {
+      "id": "to_04",
+      "category": "toxicity",
+      "gold": {
+        "rules": {
+          "secure venomous bin": [
+            "black widow spider",
+            "boomslang",
+            "brown recluse spider",
+            "solenodon"
+          ],
+          "public area bin": [
+            "deer",
+            "fox",
+            "rabbit"
+          ],
+          "verification bin": [
+            "garter snake"
+          ]
+        }
+      },
+      "semantics": {
+        "order": "unordered",
+        "match": "exact_assignment",
+        "required_move_count": 8,
+        "allow_extra_actions": false,
+        "allow_duplicate_actions": false,
+        "require_final_done": true,
+        "forbid_self_placement": true
+      }
+    },
+    {
+      "id": "to_05",
+      "category": "toxicity",
+      "gold": {
+        "rules": {
+          "hazardous bin": [
+            "tetraethyl lead",
+            "barium chloride",
+            "strychnine",
+            "ethanol",
+            "diazomethane"
+          ],
+          "non-hazardous bin": [
+            "sodium bicarbonate",
+            "glucose"
+          ],
+          "mixed bin": [
+            "plasticizer"
+          ]
+        }
+      },
+      "semantics": {
+        "order": "unordered",
+        "match": "exact_assignment",
+        "required_move_count": 8,
+        "allow_extra_actions": false,
+        "allow_duplicate_actions": false,
+        "require_final_done": true,
+        "forbid_self_placement": true
+      }
+    }
+  ]
+}
