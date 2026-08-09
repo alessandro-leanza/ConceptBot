@@ -2,11 +2,7 @@
 
 This directory contains the machine-readable specification of the 47-item
 ConceptBot benchmark: `scenes.json` (planner input) and `gold.json` (admissible
-policies used for scoring).
-
-The 47 items are distributed over six categories: `explicit_unambiguous` (7),
-`explicit_ambiguous` (10), `implicit` (10), `risk_aware` (8), `materials` (7),
-and `toxicity` (5). The two files share the same item identifiers.
+policies used for scoring). The two files share the same item identifiers.
 
 ## `scenes.json` — SceneSpec
 
@@ -29,9 +25,7 @@ Runtime-facing. One record per item, with no reference answer:
 
 `objects` is the complete scene inventory; `pickable_objects` and
 `destinations` are explicit subsets whose union covers it. An entity may hold
-both roles. Candidate actions are built only from these lists, as the Cartesian
-product of pickable objects and destinations excluding self-placement, plus
-`done()`.
+both roles.
 
 ## `gold.json` — GoldSpec
 
@@ -43,7 +37,8 @@ single reference answer, in one of two representations:
 - `rules`: an object-to-destination assignment, used by the `materials` and
   `toxicity` items and by `ra_07`.
 
-The `semantics` block makes the matching contract explicit for every item:
+A policy is correct when it is a member of the admissible set. The `semantics`
+block makes the matching contract explicit for every item:
 
 | Field | Meaning |
 | --- | --- |
@@ -54,12 +49,6 @@ The `semantics` block makes the matching contract explicit for every item:
 | `allow_duplicate_actions` | repeated actions are incorrect |
 | `require_final_done` | exactly one final `done()` is required |
 | `forbid_self_placement` | source and destination must differ |
-
-A policy is correct when it is a member of the admissible set. Choosing a
-different valid object of the requested class, or permuting causally
-independent actions, is therefore an accepted match rather than a post-hoc
-exception. Missing, duplicate, wrong-destination, and extra actions are
-incorrect, as is selecting an object outside the requested semantic class.
 
 Ordering is enforced only for `ra_03`, `ra_06`, and `ra_08`, where stacking or
 required support placement imposes a causal dependency. All other items use
