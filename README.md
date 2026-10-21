@@ -4,6 +4,9 @@
 
 [Project Page](https://alessandro-leanza.github.io/projects/conceptbot/) · [Paper](https://arxiv.org/abs/2509.00570) · [Code](https://github.com/alessandro-leanza/ConceptBot)
 
+**Accepted for publication in [Biomimetic Intelligence and Robotics (BIROB)](https://www.sciencedirect.com/journal/biomimetic-intelligence-and-robotics).** The arXiv preprint is available below;
+the citation will be updated when the final publication metadata become available.
+
 ConceptBot combines large language model reasoning with ConceptNet commonsense
 knowledge for ambiguity-aware and risk-aware task-level robot planning.
 
@@ -223,7 +226,9 @@ The demo still needs OpenAI access for uncached model calls.
 
 Use the **arXiv/preprint** citation below. [`CITATION.cff`](CITATION.cff) provides
 GitHub's “Cite this repository” metadata and identifies the preprint as the
-preferred citation. No final journal metadata is asserted.
+preferred citation. This preprint citation is provisional while the accepted
+Biomimetic Intelligence and Robotics paper awaits final publication metadata. No final DOI, volume, issue, or pages
+are asserted.
 
 ```bibtex
 @article{leanza2025conceptbot,
