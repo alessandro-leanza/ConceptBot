@@ -43,6 +43,19 @@ The benchmark percentages measure symbolic planning-policy correctness, not phys
 
 These are paper results, not results produced by the quick-start demo.
 
+### Qualitative example
+
+<p align="center">
+  <a href="https://raw.githubusercontent.com/alessandro-leanza/alessandro-leanza.github.io/main/public/projects/conceptbot/qualitative-risk.png">
+    <img src="https://raw.githubusercontent.com/alessandro-leanza/alessandro-leanza.github.io/main/public/projects/conceptbot/qualitative-risk.png" alt="Figure 2: OPE, URP, and Planner reasoning above a controlled robot comparison. ConceptBot places the bottle in front of the ceramic bowl; SayCan places it inside." width="900">
+  </a>
+</p>
+
+*Figure 2. In this risk-sensitive example, ConceptBot (left) uses object-property
+and risk information through OPE and URP to place the bottle in front of the bowl;
+SayCan (right) places it inside, creating a potential breakage risk. Click the
+figure to view it at full resolution.*
+
 ## Quick start
 
 Run commands from the repository root. The container uses Python 3.11; local
