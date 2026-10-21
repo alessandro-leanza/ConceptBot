@@ -1,0 +1,39 @@
+cff-version: 1.2.0
+message: "If you use ConceptBot, please cite the arXiv preprint in preferred-citation."
+type: software
+title: "ConceptBot"
+authors:
+  - family-names: Leanza
+    given-names: Alessandro
+  - family-names: Moroncelli
+    given-names: Angelo
+  - family-names: Vizzari
+    given-names: Giuseppe
+  - family-names: Braghin
+    given-names: Francesco
+  - family-names: Roveda
+    given-names: Loris
+  - family-names: Spahiu
+    given-names: Blerina
+repository-code: "https://github.com/alessandro-leanza/ConceptBot"
+url: "https://alessandro-leanza.github.io/projects/conceptbot/"
+license: Apache-2.0
+preferred-citation:
+  type: article
+  title: "ConceptBot: Knowledge-Graph–Grounded Commonsense for Task Decomposition in LLM Robot Planning"
+  authors:
+    - family-names: Leanza
+      given-names: Alessandro
+    - family-names: Moroncelli
+      given-names: Angelo
+    - family-names: Vizzari
+      given-names: Giuseppe
+    - family-names: Braghin
+      given-names: Francesco
+    - family-names: Roveda
+      given-names: Loris
+    - family-names: Spahiu
+      given-names: Blerina
+  journal: "arXiv preprint arXiv:2509.00570"
+  year: 2025
+  url: "https://arxiv.org/abs/2509.00570"

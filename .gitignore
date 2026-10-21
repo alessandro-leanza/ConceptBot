@@ -1,5 +1,6 @@
 # Local secrets and generated artifacts
 .env
+.venv/
 cache/
 results/
 dist/

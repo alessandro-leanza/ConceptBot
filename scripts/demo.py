@@ -5,6 +5,7 @@ Requires `OPENAI_API_KEY` for LLM-backed OPE/URP/planning calls.
 """
 
 from pathlib import Path
+import os
 import sys
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -18,6 +19,12 @@ from scripts.modules.urp import URP
 
 
 def main() -> None:
+    if not os.environ.get("OPENAI_API_KEY", "").strip():
+        raise SystemExit(
+            "OPENAI_API_KEY is not set. Copy .env.example to .env, set the key, "
+            "and export it in your shell (see README.md), or use Docker Compose."
+        )
+
     instruction = "Bring me a coke and throw away the apple."
     found_objects = ["coke", "apple", "trash can", "user", "table"]
     pick_targets = ["coke", "apple"]
